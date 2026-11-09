@@ -8,6 +8,7 @@ import { SpawnManager } from '../systems/SpawnManager.ts';
 import { getBest, getSound, saveBest, saveSound } from '../systems/Storage.ts';
 import { AudioSystem } from '../systems/Audio.ts';
 import { pauseIcon } from './ui.ts';
+import { scoreBand, track, trackGameStart } from '../systems/Analytics.ts';
 type State = {
   scene: 'boot' | 'menu' | 'game' | 'paused' | 'over';
   score: number;
@@ -67,6 +68,7 @@ export class GameScene extends Phaser.Scene {
     super('game');
   }
   create(): void {
+    trackGameStart();
     this.score = new ScoreManager();
     this.spawn = new SpawnManager();
     this.laneNames = [...this.spawn.lanes];
@@ -261,6 +263,7 @@ export class GameScene extends Phaser.Scene {
     if (result.tier)
       this.showTier(result.tier, color ?? this.laneNames[lane ?? 0]);
     if (result.gameOver) {
+      track('cf-game-over', `score ${scoreBand(this.score.score)}`);
       this.active = null;
       this.stateScene = 'over';
       this.publish();

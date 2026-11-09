@@ -2,6 +2,8 @@
 
 A portrait, hyper-casual color sorting game for mobile browsers. Sort it. Match it. Keep it moving.
 
+GoatCounter records cookie-less game events and return visits. Analytics is optional; the game continues to work offline or when the analytics script cannot load.
+
 ## Rules
 
 Tap the lane button matching the active ball before it reaches the diverter. Correct sorts add one point and increase the combo; wrong sorts and missed balls cost a life. Three mistakes end the run. Lanes redraw as the color pool expands. Difficulty increases in score bands, and combos announce GOOD, GREAT, PERFECT, then FANTASTIC.
