@@ -27,20 +27,24 @@ function precachePlugin(outDir: string, cachePrefix: string, preview: boolean): 
         .replaceAll('__CACHE_PREFIX__', cachePrefix)
         .replace('self.__PRECACHE__ = [];', `self.__PRECACHE__ = ${JSON.stringify([...paths, './'])};`);
       await writeFile(resolve(directory, 'sw.js'), output);
-      if (preview) {
+      if (preview || cachePrefix === 'cfcool-') {
         const manifestPath = resolve(directory, 'manifest.webmanifest');
         const manifest = await readFile(manifestPath, 'utf8');
-        await writeFile(manifestPath, manifest.replace('"name":"COLOR FACTORY"', '"name":"Color Factory (Preview)"'));
+        const cool = cachePrefix === 'cfcool-';
+        const name = cool ? 'Color Factory (Cool Preview)' : 'Color Factory (Preview)';
+        const themed = manifest.replace('"name":"COLOR FACTORY"', `"name":"${name}"`);
+        await writeFile(manifestPath, cool ? themed.replaceAll('#FAF7F0', '#070b18') : themed);
       }
     },
   };
 }
 export default defineConfig(({ mode }) => {
   const preview = mode === 'preview';
-  const outDir = preview ? 'dist-preview' : 'dist';
-  const cachePrefix = preview ? 'cfpreview-' : 'colorfactory-';
+  const cool = mode === 'cool';
+  const outDir = cool ? 'dist-cool' : preview ? 'dist-preview' : 'dist';
+  const cachePrefix = cool ? 'cfcool-' : preview ? 'cfpreview-' : 'colorfactory-';
   return {
-  base: preview ? '/color-factory/preview/' : './',
+  base: cool ? '/color-factory/preview-cool/' : preview ? '/color-factory/preview/' : './',
   plugins: [precachePlugin(outDir, cachePrefix, preview)],
   build: {
     outDir,

@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
-    "build:preview": "tsc --noEmit && vite build --mode preview",
+    "build": "tsc --noEmit && vite build --configLoader native",
+    "build:preview": "tsc --noEmit && vite build --configLoader native --mode preview",
+    "build:cool": "tsc --noEmit && vite build --configLoader native --mode cool",
     "preview": "vite preview",
     "test": "node --experimental-strip-types --test tests/*.test.ts"
   },

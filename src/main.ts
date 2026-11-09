@@ -6,7 +6,7 @@ import { trackReturns } from './systems/Analytics.ts';
 import './style.css';
 const game = new Phaser.Game(config);
 trackReturns();
-window.__COLORFACTORY__ = { getState: () => Object.freeze({ scene: 'boot', score: 0, best: getBest(), lives: 3, combo: 0, comboTier: null, band: 1, colorsInPool: 3, laneColors: ['coral', 'blue', 'mint'] as const, ball: null, travelMs: 2400, gapMs: 430, buttons: [], level:1,levelProgress:0,skin:'Classic',unlockedSkins:['Classic'],firstBallAt:null,fx: { lastCorrectAt: 0, correctCount: 0, wrongCount: 0, missCount: 0, scorePopCount: 0, particleBursts: 0, lastSound: null, soundCount: 0,tierShown:null,tierBursts:0,levelUps:0,vibrateCalls:0,lastPitch:null }, elapsedMs: 0, layout: { hud: { top: 0, bottom: 240 }, play: { top: 250, bottom: 1300 }, controls: { top: 1390, bottom: 1620 }, hint: null } }) };
+window.__COLORFACTORY__ = { getState: () => Object.freeze({ scene: 'boot', score: 0, best: getBest(), lives: 3, combo: 0, comboTier: null, band: 1, colorsInPool: 3, laneColors: ['coral', 'blue', 'mint'] as const, ball: null, travelMs: 2400, gapMs: 430, buttons: [], level:1,levelProgress:0,skin:'Neon',unlockedSkins:['Neon'],firstBallAt:null,fx: { lastCorrectAt: 0, correctCount: 0, wrongCount: 0, missCount: 0, scorePopCount: 0, particleBursts: 0, lastSound: null, soundCount: 0,tierShown:null,tierBursts:0,levelUps:0,vibrateCalls:0,lastPitch:null }, elapsedMs: 0, layout: { hud: { top: 0, bottom: 240 }, play: { top: 250, bottom: 1300 }, controls: { top: 1390, bottom: 1620 }, hint: null } }) };
 const splash = document.getElementById('launch-splash');
 game.events.once('ready', () => window.setTimeout(() => splash?.classList.add('hidden'), 180));
 const unlock = () => { const scene = game.scene.getScene('game') as Phaser.Scene & {

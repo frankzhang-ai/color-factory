@@ -71,6 +71,7 @@ export class GameScene extends Phaser.Scene {
   lastSound: string | null = null;
   tierShown: string | null = null; tierBursts=0; levelUps=0; vibrateCalls=0; lastPitch:number|null=null; firstBallAt:number|null=null;
   levelText!: Phaser.GameObjects.Text; levelBar!: Phaser.GameObjects.Graphics; chuteFlash!: Phaser.GameObjects.Graphics;
+  sparkEmitter!: Phaser.GameObjects.Particles.ParticleEmitter;
   skin = getSkin();
   soundCount = 0;
   lastTap = [Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY];
@@ -85,6 +86,8 @@ export class GameScene extends Phaser.Scene {
   }
   create(): void {
     floatingShapes(this);
+    if(!this.textures.exists('cool-spark')){const sparkTexture=this.add.graphics();sparkTexture.fillStyle(0xffffff,1);sparkTexture.fillCircle(4,4,4);sparkTexture.generateTexture('cool-spark',8,8);sparkTexture.destroy();}
+    this.sparkEmitter=this.add.particles(0,0,'cool-spark',{speed:{min:80,max:260},angle:{min:0,max:360},scale:{start:1,end:0},alpha:{start:1,end:0},lifespan:420,quantity:12,maxParticles:150,blendMode:Phaser.BlendModes.ADD, emitting:false});this.sparkEmitter.setDepth(10);
     trackGameStart();
     this.score = new ScoreManager();
     this.spawn = new SpawnManager();
@@ -105,11 +108,11 @@ export class GameScene extends Phaser.Scene {
     this.audio = new AudioSystem(getSound());
     this.stateScene = 'game';
     this.runStartedAt = this.time.now;
-    this.add.text(390,65,'0',{fontFamily:'system-ui,sans-serif',fontSize:'84px',fontStyle:'bold',color:'#353431',letterSpacing:5,shadow:{offsetX:0,offsetY:3,color:'#8e8679',blur:5,fill:true}}).setOrigin(.5).setName('score');
+    this.add.text(390,65,'0',{fontFamily:'system-ui,sans-serif',fontSize:'84px',fontStyle:'bold',color:'#eafaff',letterSpacing:5,stroke:'#22e6ff',strokeThickness:2,shadow:{offsetX:0,offsetY:0,color:'#22e6ff',blur:20,fill:true}}).setOrigin(.5).setName('score');
     this.drawLives(3);
-    text(this, 390, 155, 'COMBO  0', 22, '#77746d').setName('combo');
-    const comboPill=this.add.graphics();comboPill.fillStyle(0xffffff,.72);comboPill.fillRoundedRect(302,132,176,46,23);comboPill.lineStyle(2,0xe4ded1,.9);comboPill.strokeRoundedRect(302,132,176,46,23);comboPill.setDepth(-1);
-    this.levelText=text(this,390,214,'LEVEL 1',20,'#77746d');
+    text(this, 390, 155, 'COMBO  0', 22, '#eafaff').setName('combo');
+    const comboPill=this.add.graphics();comboPill.fillStyle(0x091426,.9);comboPill.fillRoundedRect(302,132,176,46,23);comboPill.lineStyle(2,0x22e6ff,.9);comboPill.strokeRoundedRect(302,132,176,46,23);comboPill.setDepth(-1);
+    this.levelText=text(this,390,214,'LEVEL 1 · 5 PTS EACH',20,'#22e6ff');
     this.levelBar=this.add.graphics();this.drawLevelBar();
     const pause = this.add.graphics();
     pause.fillStyle(0x353431, 0.08);
@@ -127,7 +130,7 @@ export class GameScene extends Phaser.Scene {
       this.lanes.push(btn);
     }
     this.ballGraphic = this.add.graphics();
-    this.hint = text(this, 390, 282, 'Tap the matching color', 20, '#77746d', 'normal');
+    this.hint = text(this, 390, 282, 'Tap the matching color', 20, '#9bb3cd', 'normal');
     this.chuteFlash=this.add.graphics();
     const keys: [
       string,
@@ -157,7 +160,7 @@ export class GameScene extends Phaser.Scene {
     for (let i = 0; i < 3; i++) {
       const x = 56 + i * 43;
       if (i < lives) {
-        g.fillStyle(0xe98980, 1);
+        g.fillStyle(0xff2bd6, 1);
         g.fillCircle(x - 6, 70, 9);
         g.fillCircle(x + 6, 70, 9);
         g.fillTriangle(x - 15, 75, x + 15, 75, x, 93);
@@ -180,11 +183,11 @@ export class GameScene extends Phaser.Scene {
     for (let i = 0; i < 3; i++) {
       const x = 140 + i * 250;
       const dx=x-390, topX=390+dx*.45;
-      this.exitGraphic.fillStyle(0xa79f92,.2);this.exitGraphic.fillPoints([{x:topX-43,y:1003},{x:topX+43,y:1003},{x:x+84,y:1354},{x:x-84,y:1354}],true);
-      this.exitGraphic.fillStyle(0xe4ded3,1);this.exitGraphic.fillPoints([{x:topX-37,y:1010},{x:topX+37,y:1010},{x:x+76,y:1350},{x:x-76,y:1350}],true);
-      this.exitGraphic.lineStyle(8,0xb9b2a5,1);this.exitGraphic.lineBetween(topX-38,1010,x-76,1350);this.exitGraphic.lineBetween(topX+38,1010,x+76,1350);
+      this.exitGraphic.fillStyle(0x02050c,.92);this.exitGraphic.fillPoints([{x:topX-43,y:1003},{x:topX+43,y:1003},{x:x+84,y:1354},{x:x-84,y:1354}],true);
+      this.exitGraphic.fillStyle(0x111d2e,1);this.exitGraphic.fillPoints([{x:topX-37,y:1010},{x:topX+37,y:1010},{x:x+76,y:1350},{x:x-76,y:1350}],true);
+      this.exitGraphic.lineStyle(8,0x263e59,1);this.exitGraphic.lineBetween(topX-38,1010,x-76,1350);this.exitGraphic.lineBetween(topX+38,1010,x+76,1350);
       this.exitGraphic.lineStyle(20,HEX[this.laneNames[i]],.95);this.exitGraphic.lineBetween(topX-30,1015,topX+30,1015);
-      this.exitGraphic.fillStyle(0x6f6a62,.8);this.exitGraphic.fillEllipse(x,1337,130,28);
+      this.exitGraphic.fillStyle(0x07101e,.95);this.exitGraphic.fillEllipse(x,1337,130,28);
       this.exitGraphic.fillStyle(HEX[this.laneNames[i]],.2);this.exitGraphic.fillEllipse(x,1337,145,40);
       this.exitGraphic.lineStyle(4,HEX[this.laneNames[i]],.9);this.exitGraphic.strokeEllipse(x,1337,130,28);
       this.exitGraphic.fillStyle(HEX[this.laneNames[i]],.45);
@@ -193,13 +196,13 @@ export class GameScene extends Phaser.Scene {
   }
   private drawDiverter(): void {
     const g = this.add.graphics();
-    g.fillStyle(0xd8d1c6,1);g.fillRoundedRect(340,975,100,50,12);g.lineStyle(3,0xb9b2a5,1);g.strokeRoundedRect(340,975,100,50,12);
+    g.fillStyle(0x111d2e,1);g.fillRoundedRect(340,975,100,50,12);g.lineStyle(4,0x22e6ff,.9);g.strokeRoundedRect(340,975,100,50,12);
     // Flipper drawn around its pivot so it swings in place toward the chosen chute.
     const f = this.add.graphics().setPosition(390, 989);
-    f.fillStyle(0xe9e5dc,1);f.fillPoints([{x:-16,y:-3},{x:16,y:-3},{x:0,y:51}],true);f.lineStyle(2,0xb9b2a5,1);f.strokePoints([{x:-16,y:-3},{x:16,y:-3},{x:0,y:51}],true);
-    f.fillStyle(0xb9b2a5,1);f.fillCircle(0,0,8);f.setName('flipper');
+    f.fillStyle(0x22e6ff,1);f.fillPoints([{x:-16,y:-3},{x:16,y:-3},{x:0,y:51}],true);f.lineStyle(2,0x9af5ff,1);f.strokePoints([{x:-16,y:-3},{x:16,y:-3},{x:0,y:51}],true);
+    f.fillStyle(0xff2bd6,1);f.fillCircle(0,0,8);f.setName('flipper');
   }
-  private drawLevelBar():void { const p=(this.score.score%10)/10;this.levelBar.clear();this.levelBar.fillStyle(0xe4ded1,1);this.levelBar.fillRoundedRect(286,237,208,10,5);this.levelBar.fillStyle(0x85b9d8,1);this.levelBar.fillRoundedRect(286,237,208*p,10,5); }
+  private drawLevelBar():void { const p=(this.score.score%5)/5;this.levelBar.clear();this.levelBar.fillStyle(0x101d32,1);this.levelBar.fillRoundedRect(286,237,208,14,7);for(let i=0;i<5;i++){this.levelBar.fillStyle(i<this.score.score%5?0x22e6ff:0x26334a,1);this.levelBar.fillRoundedRect(289+i*41,240,37,8,4);}this.levelBar.lineStyle(2,0x22e6ff,.75);this.levelBar.strokeRoundedRect(286,237,208,14,7); }
   update(_time: number, delta: number): void {
     if (this.stateScene !== 'game')
       return;
@@ -215,6 +218,7 @@ export class GameScene extends Phaser.Scene {
       const progress = Math.min(1, (this.elapsed - this.active.start) / this.active.travel);
       this.ballGraphic.clear();
       const wobble=Math.sin(this.elapsed/85);this.ballGraphic.setScale(1+Math.max(0,wobble)*.035,1-Math.max(0,wobble)*.025);
+      const trailY=390+progress*560;for(let i=5;i>=1;i--){this.ballGraphic.fillStyle(HEX[this.active.color],.035+(6-i)*.014);this.ballGraphic.fillCircle(390,trailY-i*22,70-i*5);}
       ball(this.ballGraphic, this.active.color, 390 + Math.sin(this.elapsed / 110) * 2, 390 + progress * 560, 70,this.skin,this.elapsed/85);
       if (progress >= 1) {
         this.active = null;
@@ -278,11 +282,11 @@ export class GameScene extends Phaser.Scene {
     const result = this.score.sort(correct);
     this.obj('score').setText(String(this.score.score));
     this.obj('combo').setText(`COMBO  ${this.score.combo}`);
-    this.obj('combo').setStyle({color:correct?'#e98980':'#77746d'});
+    this.obj('combo').setStyle({color:correct?'#ff2bd6':'#9bb3cd'});
     this.tweens.add({ targets: this.obj('combo'), scale: 1.14, yoyo: true, duration: 100 });
     this.updateLives(this.score.lives);
-    this.levelText.setText(`LEVEL ${Math.floor(this.score.score/10)+1}`);this.drawLevelBar();
-    if(correct&&this.score.score>0&&this.score.score%10===0){this.levelUps++;this.levelText.setScale(.7);this.tweens.add({targets:this.levelText,scale:1.2,duration:170,yoyo:true,hold:100,ease:'Back.Out'});this.levelText.setColor('#e98980');this.time.delayedCall(550,()=>this.levelText.setColor('#77746d'));this.levelBar.setAlpha(.35);this.tweens.add({targets:this.levelBar,alpha:1,duration:300,yoyo:true});this.toast(`LEVEL ${Math.floor(this.score.score/10)+1}`);this.particles(390,750,'yellow');}
+    const levelNow=Math.floor(this.score.score/5)+1;this.levelText.setText(`LEVEL ${levelNow} · 5 PTS EACH`);this.drawLevelBar();
+    if(correct&&this.score.score>0&&this.score.score%5===0){this.levelUps++;this.levelText.setScale(.7);this.tweens.add({targets:this.levelText,scale:1.2,duration:170,yoyo:true,hold:100,ease:'Back.Out'});this.levelText.setColor('#39ff88');this.time.delayedCall(550,()=>this.levelText.setColor('#22e6ff'));this.levelBar.setAlpha(.25);this.tweens.add({targets:this.levelBar,alpha:1,duration:300,yoyo:true});this.audio.tone('good',this.score.combo+3);this.cameras.main.flash(100,20,230,255);this.levelBanner(levelNow);this.particles(390,820,'yellow');}
     this.vibrate(correct?10:30,correct);
     if (correct) {
       this.correctCount++;
@@ -290,7 +294,7 @@ export class GameScene extends Phaser.Scene {
       this.playSound('correct');
       this.lastPitch=this.audio.lastPitch;
       this.obj('score').setScale(1.25);
-      this.obj('score').setColor('#e98980');this.time.delayedCall(180,()=>this.obj('score').setColor('#353431'));
+      this.obj('score').setColor('#ff2bd6');this.time.delayedCall(180,()=>this.obj('score').setColor('#353431'));
       this.tweens.add({ targets: this.obj('score'), scale: 1, duration: 200, ease: 'Back.Out' });
       this.scorePopCount++;
       const x = 140 + (lane ?? 0) * 250;
@@ -314,12 +318,15 @@ export class GameScene extends Phaser.Scene {
       this.playSound(color ? 'wrong' : 'miss', false);
       this.cameras.main.shake(140, 0.004);
       if (color) {
+        const ex=140+(lane??0)*250;const error=text(this,ex,1180,'ERROR',30,'#ff3158');error.setStroke('#ff003c',4);this.cameras.main.flash(65,255,20,55);this.time.delayedCall(330,()=>error.destroy());
         this.ballGraphic.clear();
         this.ballGraphic.fillStyle(0xaaa69e, .9); this.ballGraphic.fillCircle(390, 1000, 70);
         this.tweens.add({ targets: this.ballGraphic, y: 60, alpha: 0, duration: 220, onComplete: () => this.ballGraphic.clear().setPosition(0, 0).setAlpha(1) });
       }
-      else
+      else {
+        this.cameras.main.flash(100,180,0,25);
         this.toast('TOO LATE');
+      }
     }
     this.gap = this.elapsed + getDifficulty(this.score.score).gapMs;
     if (result.tier)
@@ -343,7 +350,7 @@ export class GameScene extends Phaser.Scene {
         gapMs: finalDifficulty.gapMs,
         fx: { lastCorrectAt: this.lastCorrectAt, correctCount: this.correctCount, wrongCount: this.wrongCount, missCount: this.missCount, scorePopCount: this.scorePopCount, particleBursts: this.particleBursts, lastSound: this.lastSound, soundCount: this.soundCount },
         elapsedMs: this.elapsed,
-        level:Math.floor(this.score.score/10)+1,levelProgress:(this.score.score%10)/10,skin:this.skin,unlockedSkins:getUnlockedSkins(this.best),firstBallAt:this.firstBallAt,
+        level:Math.floor(this.score.score/5)+1,levelProgress:(this.score.score%5)/5,skin:this.skin,unlockedSkins:getUnlockedSkins(this.best),firstBallAt:this.firstBallAt,
       });
     }
   }
@@ -353,6 +360,12 @@ export class GameScene extends Phaser.Scene {
   private toast(label: string): void {
     const item = text(this, 390, 820, label, 34, '#353431');
     this.tweens.add({ targets: item, alpha: 0, y: 780, duration: 850, delay: 350, onComplete: () => item.destroy() });
+  }
+  private levelBanner(level:number):void {
+    const back=this.add.graphics().setDepth(12);back.fillStyle(0x05070f,.82);back.fillRoundedRect(105,780,570,128,24);back.lineStyle(3,0x22e6ff,1);back.strokeRoundedRect(105,780,570,128,24);
+    const a=text(this,390,845,`LEVEL ${level}`,66,'#ffffff');a.setDepth(13);a.setStroke('#ff2bd6',3);
+    this.cameras.main.shake(150,.002);
+    this.tweens.add({targets:[back,a],alpha:0,y:'-=24',duration:850,delay:350,onComplete:()=>{back.destroy();a.destroy();}});
   }
   private toastAt(label: string, x: number, y: number, _color?: ColorName): void {
     const item = text(this, x, y, label, 38, '#353431');
@@ -377,6 +390,7 @@ export class GameScene extends Phaser.Scene {
   }
   private particles(x: number, y: number, color: ColorName): void {
     this.particleBursts++;
+    this.sparkEmitter.setParticleTint(HEX[color]);this.sparkEmitter.explode(12,x,y);
     const g = this.add.graphics();
     g.fillStyle(HEX[color], 1);
     for (let i = 0; i < 12; i++) {
@@ -424,7 +438,7 @@ export class GameScene extends Phaser.Scene {
       gapMs: difficulty.gapMs,
       buttons,
       elapsedMs: this.elapsed,
-      level:Math.floor(this.score.score/10)+1,levelProgress:(this.score.score%10)/10,skin:this.skin,unlockedSkins:getUnlockedSkins(),firstBallAt:this.firstBallAt,
+      level:Math.floor(this.score.score/5)+1,levelProgress:(this.score.score%5)/5,skin:this.skin,unlockedSkins:getUnlockedSkins(),firstBallAt:this.firstBallAt,
       fx: { lastCorrectAt: this.lastCorrectAt, correctCount: this.correctCount, wrongCount: this.wrongCount, missCount: this.missCount, scorePopCount: this.scorePopCount, particleBursts: this.particleBursts, lastSound: this.lastSound, soundCount: this.soundCount,tierShown:this.tierShown,tierBursts:this.tierBursts,levelUps:this.levelUps,vibrateCalls:this.vibrateCalls,lastPitch:this.lastPitch },
       layout: { hud: { top: 0, bottom: 250 }, play: { top: 250, bottom: 1320 }, controls: { top: 1400, bottom: 1620 }, hint: { x: 390, y: 282, w: 500, h: 36, visible: this.hint.alpha > 0, alpha: this.hint.alpha } },
     };
