@@ -12,7 +12,7 @@ export class MenuScene extends Phaser.Scene {
     window.__COLORFACTORY__={getState:state};
     this.add.text(55,230,'✦',{fontSize:'55px',color:'#e9cd83'});this.add.text(680,390,'●',{fontSize:'80px',color:'#b8a6d9'});this.add.text(90,1140,'△',{fontSize:'90px',color:'#9ac9ac'});
     const g=this.add.graphics();ball(g,'coral',285,450,46,this.skin,0);ball(g,'blue',390,450,46,this.skin,1);ball(g,'mint',495,450,46,this.skin,2);
-    g.fillStyle(0x293641,1);g.fillRoundedRect(250,510,280,48,14);g.lineStyle(3,0x78838a,1);g.lineBetween(262,518,518,518);g.lineBetween(262,550,518,550);
+    g.fillStyle(0xcfc7b8,1);g.fillRoundedRect(250,510,280,48,14);g.lineStyle(3,0xb9b2a5,1);g.lineBetween(262,518,518,518);g.lineBetween(262,550,518,550);
     for(let x=275;x<525;x+=35){g.fillStyle(0x9ba6a8,.6);g.fillTriangle(x,525,x+22,525,x+11,543);}
     text(this,390,660,'COLOR FACTORY',58);text(this,390,725,'SORT • MATCH • KEEP IT MOVING',21,'#77746d','normal');
     const play=this.add.graphics();play.fillStyle(0xe98980);play.fillRoundedRect(130,850,520,142,40);play.lineStyle(5,0xffffff,.55);play.strokeRoundedRect(130,850,520,142,40);play.setInteractive(new Phaser.Geom.Rectangle(130,850,520,142),Phaser.Geom.Rectangle.Contains).on('pointerdown',()=>this.scene.start('game'));text(this,390,921,'PLAY',48);

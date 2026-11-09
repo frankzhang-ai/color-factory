@@ -24,3 +24,10 @@ else if (game.scene.isPaused('game')) {
 } });
 if (import.meta.env.PROD && 'serviceWorker' in navigator)
   window.addEventListener('load', () => { void navigator.serviceWorker.register('./sw.js'); });
+// iOS Safari can report stale canvas bounds after letterboxing/safe-area padding, which shifts touch input.
+// Refresh Phaser's cached bounds before each touch/pointer reaches the canvas, and after layout changes.
+const refreshBounds = () => { try { game.scale.updateBounds(); } catch {} };
+window.addEventListener('touchstart', refreshBounds, { capture: true, passive: true });
+window.addEventListener('pointerdown', refreshBounds, { capture: true, passive: true });
+window.addEventListener('resize', () => { window.setTimeout(() => game.scale.refresh(), 50); });
+window.addEventListener('orientationchange', () => { window.setTimeout(() => game.scale.refresh(), 300); });

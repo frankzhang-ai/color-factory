@@ -351,8 +351,8 @@ export class GameScene extends Phaser.Scene {
     return this.children.getByName(name) as Phaser.GameObjects.Text;
   }
   private toast(label: string): void {
-    const item = text(this, 390, 250, label, 30, '#353431');
-    this.tweens.add({ targets: item, alpha: 0, y: 210, duration: 850, delay: 350, onComplete: () => item.destroy() });
+    const item = text(this, 390, 820, label, 34, '#353431');
+    this.tweens.add({ targets: item, alpha: 0, y: 780, duration: 850, delay: 350, onComplete: () => item.destroy() });
   }
   private toastAt(label: string, x: number, y: number, _color?: ColorName): void {
     const item = text(this, x, y, label, 38, '#353431');
@@ -363,17 +363,17 @@ export class GameScene extends Phaser.Scene {
     this.tweens.add({targets:this.hint,alpha:0,duration:120});
     const size=tier==='FANTASTIC'?100:tier==='PERFECT'?88:tier==='GREAT'?76:64;
     const targets: Phaser.GameObjects.Text[] = tier==='FANTASTIC'
-      ? [...tier].map((letter,index)=>this.add.text(390-261+index*58,300,letter,{fontFamily:'system-ui,sans-serif',fontSize:`${size}px`,fontStyle:'bold',color:'#ffffff',stroke:`#${[0xe98980,0xe9cd83,0x9ac9ac,0x85b9d8,0xb8a6d9][index%5].toString(16)}`,strokeThickness:8,shadow:{offsetX:0,offsetY:5,color:'#6f665b',blur:9,fill:true}}).setOrigin(.5).setScale(.05))
-      : [this.add.text(390,300,tier,{fontFamily:'system-ui,sans-serif',fontSize:`${size}px`,fontStyle:'bold',color:'#ffffff',stroke:`#${HEX[color].toString(16).padStart(6,'0')}`,strokeThickness:8,shadow:{offsetX:0,offsetY:5,color:'#6f665b',blur:9,fill:true},align:'center'}).setOrigin(.5).setScale(.05)];
+      ? [...tier].map((letter,index)=>this.add.text(390-261+index*58,560,letter,{fontFamily:'system-ui,sans-serif',fontSize:`${size}px`,fontStyle:'bold',color:'#ffffff',stroke:`#${[0xe98980,0xe9cd83,0x9ac9ac,0x85b9d8,0xb8a6d9][index%5].toString(16)}`,strokeThickness:8,shadow:{offsetX:0,offsetY:5,color:'#6f665b',blur:9,fill:true}}).setOrigin(.5).setScale(.05))
+      : [this.add.text(390,560,tier,{fontFamily:'system-ui,sans-serif',fontSize:`${size}px`,fontStyle:'bold',color:'#ffffff',stroke:`#${HEX[color].toString(16).padStart(6,'0')}`,strokeThickness:8,shadow:{offsetX:0,offsetY:5,color:'#6f665b',blur:9,fill:true},align:'center'}).setOrigin(.5).setScale(.05)];
     this.tweens.add({
       targets,
       scale: 1.2, duration: 180, ease: 'Back.Out', yoyo: true, hold: 550,
-      onComplete: () => { this.tweens.add({ targets, alpha: 0, y: 250, duration: 340, onComplete: () => targets.forEach(item=>item.destroy()) }); },
+      onComplete: () => { this.tweens.add({ targets, alpha: 0, y: 500, duration: 340, onComplete: () => targets.forEach(item=>item.destroy()) }); },
     });
-    if(tier!=='GOOD'){this.particles(390,300,color);if(tier!=='GREAT')this.particles(390,300,color);}
-    if(tier==='GREAT'||tier==='PERFECT'||tier==='FANTASTIC'){const ring=this.add.graphics().setPosition(390,300);ring.lineStyle(tier==='FANTASTIC'?9:6,HEX[color],.9);ring.strokeCircle(0,0,48);this.tweens.add({targets:ring,scale:3.2,alpha:0,duration:500,onComplete:()=>ring.destroy()});}
+    if(tier!=='GOOD'){this.particles(390,560,color);if(tier!=='GREAT')this.particles(390,560,color);}
+    if(tier==='GREAT'||tier==='PERFECT'||tier==='FANTASTIC'){const ring=this.add.graphics().setPosition(390,560);ring.lineStyle(tier==='FANTASTIC'?9:6,HEX[color],.9);ring.strokeCircle(0,0,48);this.tweens.add({targets:ring,scale:3.2,alpha:0,duration:500,onComplete:()=>ring.destroy()});}
     if(tier==='PERFECT'){this.cameras.main.zoomTo(1.035,120);this.time.delayedCall(180,()=>this.cameras.main.zoomTo(1,150));}
-    if(tier==='FANTASTIC'){this.cameras.main.flash(110,255,250,235);this.vibrate(10,true);const confetti=this.add.graphics();const colors=[0xe98980,0x85b9d8,0x9ac9ac,0xe9cd83,0xb8a6d9];for(let i=0;i<44;i++){confetti.fillStyle(colors[i%5],1);confetti.fillRect(120+(i*47)%540,220+(i*71)%300,10,16);}this.tweens.add({targets:confetti,alpha:0,y:70,duration:750,onComplete:()=>confetti.destroy()});}
+    if(tier==='FANTASTIC'){this.cameras.main.flash(110,255,250,235);this.vibrate(10,true);const confetti=this.add.graphics();const colors=[0xe98980,0x85b9d8,0x9ac9ac,0xe9cd83,0xb8a6d9];for(let i=0;i<44;i++){confetti.fillStyle(colors[i%5],1);confetti.fillRect(120+(i*47)%540,440+(i*71)%300,10,16);}this.tweens.add({targets:confetti,alpha:0,y:70,duration:750,onComplete:()=>confetti.destroy()});}
   }
   private particles(x: number, y: number, color: ColorName): void {
     this.particleBursts++;

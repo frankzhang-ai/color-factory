@@ -16,7 +16,7 @@ export class GameOverScene extends Phaser.Scene {
     text(this,390,310,'RUN COMPLETE',46);
     text(this,390,415,'SCORE',22,'#77746d');text(this,390,500,String(d.score),100);
     text(this,390,620,`BEST  ${d.best}`,28);
-    if(d.newBest){const best=text(this,390,680,'NEW BEST!',44,'#e98980');best.setScale(.35);this.tweens.add({targets:best,scale:1.12,duration:430,ease:'Back.Out',yoyo:true,hold:100});this.tweens.add({targets:bg,alpha:.5,duration:260,yoyo:true,repeat:2});this.confetti();}
+    if(d.newBest){const best=text(this,390,680,'NEW BEST!',56,'#e98980');best.setScale(.35);this.tweens.add({targets:best,scale:1,duration:430,ease:'Back.Out',onComplete:()=>this.tweens.add({targets:best,scale:1.08,duration:520,yoyo:true,repeat:-1,ease:'Sine.InOut'})});this.tweens.add({targets:bg,alpha:.5,duration:260,yoyo:true,repeat:2});this.confetti();}
     else text(this,390,680,`${Math.max(0,d.best-d.score)} TO BEAT YOUR BEST (${d.best})`,23,'#77746d','normal');
     if(newly){text(this,390,775,`NEW SKIN UNLOCKED: ${newly}!`,23,'#8d7652');const preview=this.add.graphics();ball(preview,'coral',650,775,24,newly,0);}
     if(next){
