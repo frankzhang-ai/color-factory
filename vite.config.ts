@@ -2,11 +2,11 @@ import { createHash } from 'node:crypto';
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
-function precachePlugin(): Plugin {
+function precachePlugin(outDir: string, cachePrefix: string, preview: boolean): Plugin {
   return {
     name: 'color-factory-precache',
     async closeBundle() {
-      const directory = resolve('dist');
+      const directory = resolve(outDir);
       const { readdir } = await import('node:fs/promises');
       async function walk(folder: string): Promise<string[]> {
         const entries = await readdir(folder, { withFileTypes: true });
@@ -24,16 +24,27 @@ function precachePlugin(): Plugin {
       const serviceWorker = await readFile(resolve('public/sw.js'), 'utf8');
       const output = serviceWorker
         .replace('__BUILD_HASH__', buildHash)
+        .replace('__CACHE_PREFIX__', cachePrefix)
         .replace('self.__PRECACHE__ = [];', `self.__PRECACHE__ = ${JSON.stringify([...paths, './'])};`);
       await writeFile(resolve(directory, 'sw.js'), output);
+      if (preview) {
+        const manifestPath = resolve(directory, 'manifest.webmanifest');
+        const manifest = await readFile(manifestPath, 'utf8');
+        await writeFile(manifestPath, manifest.replace('"name":"COLOR FACTORY"', '"name":"Color Factory (Preview)"'));
+      }
     },
   };
 }
-export default defineConfig({
-  base: './',
-  plugins: [precachePlugin()],
+export default defineConfig(({ mode }) => {
+  const preview = mode === 'preview';
+  const outDir = preview ? 'dist-preview' : 'dist';
+  const cachePrefix = preview ? 'cfpreview-' : 'colorfactory-';
+  return {
+  base: preview ? '/color-factory/preview/' : './',
+  plugins: [precachePlugin(outDir, cachePrefix, preview)],
   build: {
-    outDir: 'dist',
+    outDir,
     chunkSizeWarningLimit: 2000,
   },
+  };
 });

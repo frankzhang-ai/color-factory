@@ -14,8 +14,10 @@ export class GameOverScene extends Phaser.Scene {
     laneColors: ColorName[];
     travelMs: number;
     gapMs: number;
+    fx: { lastCorrectAt: number; correctCount: number; wrongCount: number; missCount: number; scorePopCount: number; particleBursts: number; lastSound: string | null; soundCount: number };
+    elapsedMs: number;
   }): void {
-    window.__COLORFACTORY__ = { getState: () => Object.freeze({ scene: 'over', score: data.score, best: data.best, lives: 0, combo: 0, comboTier: data.comboTier, band: data.band, colorsInPool: data.colorsInPool, laneColors: Object.freeze([...data.laneColors]), ball: null, travelMs: data.travelMs, gapMs: data.gapMs, buttons: Object.freeze([]) }) };
+    window.__COLORFACTORY__ = { getState: () => Object.freeze({ scene: 'over', score: data.score, best: data.best, lives: 0, combo: 0, comboTier: data.comboTier, band: data.band, colorsInPool: data.colorsInPool, laneColors: Object.freeze([...data.laneColors]), ball: null, travelMs: data.travelMs, gapMs: data.gapMs, buttons: Object.freeze([]), fx: Object.freeze({ ...data.fx }), elapsedMs: data.elapsedMs, layout: { hud: { top: 0, bottom: 240 }, play: { top: 250, bottom: 1300 }, controls: { top: 1390, bottom: 1620 }, hint: null } }) };
     text(this, 390, 450, 'GAME OVER', 62);
     text(this, 390, 620, 'SCORE', 24, '#77746d');
     text(this, 390, 700, String(data.score), 90);

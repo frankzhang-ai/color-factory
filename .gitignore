@@ -1,3 +1,5 @@
 node_modules/
 dist/
 screenshots/
+dist-preview/
+codex-v2*.log

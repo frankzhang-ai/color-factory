@@ -10,9 +10,12 @@ for (const [n, tier] of [[3, 'GOOD'], [5, 'GREAT'], [10, 'PERFECT'], [20, 'FANTA
   assert.equal(tierForCombo(n), tier);
 assert.equal(tierForCombo(4), null);
 assert.equal(getDifficulty(10).band, 1);
+assert.equal(getDifficulty(0).travelMs, 3500);
+assert.equal(getDifficulty(0).gapMs, 900);
 assert.equal(getDifficulty(11).band, 2);
+assert.equal(getDifficulty(11).colorsInPool, 3);
 assert.equal(getDifficulty(21).colorsInPool, 4);
-assert.equal(getDifficulty(31).gapMs, 350);
+assert.equal(getDifficulty(31).gapMs, 500);
 assert.equal(getDifficulty(51).colorsInPool, 5);
 assert.equal(getDifficulty(500).travelMs, 900);
 const spawn = new SpawnManager(['coral', 'blue', 'mint', 'yellow', 'lavender'], () => 0.2);

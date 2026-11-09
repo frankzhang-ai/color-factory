@@ -17,19 +17,20 @@ export class Conveyor extends Phaser.GameObjects.Container {
     maskShape.fillStyle(0xffffff);
     maskShape.fillRoundedRect(x - width / 2, y - height / 2, width, height, 28);
     const mask = maskShape.createGeometryMask();
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 27; i++) {
       const stripe = scene.add.graphics();
       stripe.fillStyle(0xded8cc, 0.8);
-      stripe.fillRoundedRect(-width / 2 + 10, -height / 2 + i * 32, width - 20, 14, 7);
+      stripe.fillRoundedRect(-width / 2 + 10, -7, width - 20, 14, 7);
+      stripe.y = -height / 2 + 24 + i * 32;
       stripe.setMask(mask);
       this.stripes.push(stripe);
       this.add(stripe);
     }
   }
-  tick(delta: number): void {
+  tick(delta: number, travelMs = 3500): void {
     const span = this.stripeBottom - this.stripeTop;
     for (const stripe of this.stripes) {
-      stripe.y += delta * 0.055;
+      stripe.y += delta * Math.max(.018, 190 / travelMs);
       if (stripe.y > this.stripeBottom)
         stripe.y -= span;
     }

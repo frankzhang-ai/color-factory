@@ -30,6 +30,9 @@ type State = {
     x: number;
     y: number;
   }[];
+  fx: { lastCorrectAt: number; correctCount: number; wrongCount: number; missCount: number; scorePopCount: number; particleBursts: number; lastSound: string | null; soundCount: number };
+  elapsedMs: number;
+  layout: { hud: { top: number; bottom: number }; play: { top: number; bottom: number }; controls: { top: number; bottom: number }; hint: { x: number; y: number; w: number; h: number; visible: boolean; alpha: number } | null };
 };
 declare global {
   interface Window {
@@ -58,6 +61,14 @@ export class GameScene extends Phaser.Scene {
   lanePauseUntil = 0;
   ballCount = 0;
   correctCount = 0;
+  wrongCount = 0;
+  missCount = 0;
+  scorePopCount = 0;
+  particleBursts = 0;
+  lastCorrectAt = 0;
+  lastSound: string | null = null;
+  soundCount = 0;
+  lastTap = [Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY];
   lastBand = 1;
   best = getBest();
   previousBest = getBest();
@@ -79,32 +90,34 @@ export class GameScene extends Phaser.Scene {
     this.lanePauseUntil = 0;
     this.ballCount = 0;
     this.correctCount = 0;
+    this.wrongCount = 0; this.missCount = 0; this.scorePopCount = 0; this.particleBursts = 0; this.lastCorrectAt = 0; this.lastSound = null; this.soundCount = 0;
+    this.lastTap = [Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY];
     this.lastBand = 1;
     this.best = getBest();
     this.previousBest = this.best;
     this.audio = new AudioSystem(getSound());
     this.stateScene = 'game';
     this.runStartedAt = this.time.now;
-    text(this, 390, 55, '0', 68).setName('score');
+    text(this, 390, 65, '0', 84).setName('score');
     this.drawLives(3);
-    text(this, 390, 139, 'COMBO  0', 25, '#77746d').setName('combo');
+    text(this, 390, 155, 'COMBO  0', 27, '#77746d').setName('combo');
     const pause = this.add.graphics();
     pause.fillStyle(0x353431, 0.08);
-    pause.fillCircle(700, 78, 44);
-    pauseIcon(this, 700, 78);
-    pause.setInteractive(new Phaser.Geom.Circle(700, 78, 44), Phaser.Geom.Circle.Contains)
+    pause.fillCircle(710, 92, 42);
+    pauseIcon(this, 710, 92);
+    pause.setInteractive(new Phaser.Geom.Circle(710, 92, 42), Phaser.Geom.Circle.Contains)
       .on('pointerdown', () => this.showPause());
-    this.conveyor = new Conveyor(this, 390, 650, 260, 820);
+    this.conveyor = new Conveyor(this, 390, 690, 410, 720);
     this.add.existing(this.conveyor);
     this.exitGraphic = this.add.graphics();
     this.drawExits();
     this.drawDiverter();
     for (let i = 0; i < 3; i++) {
-      const btn = new SortButton(this, 130 + i * 260, 1450, 224, 282, this.laneNames[i], () => this.choose(i));
+      const btn = new SortButton(this, 140 + i * 250, 1510, 210, 220, this.laneNames[i], () => this.choose(i));
       this.lanes.push(btn);
     }
     this.ballGraphic = this.add.graphics();
-    this.hint = text(this, 390, 1315, 'Tap the matching color', 24, '#77746d', 'normal');
+    this.hint = text(this, 390, 1360, 'Tap the matching color', 24, '#77746d', 'normal');
     const keys: [
       string,
       number
@@ -148,34 +161,39 @@ export class GameScene extends Phaser.Scene {
   private updateLives(lives: number): void {
     this.children.getByName('lives')?.destroy();
     this.drawLives(lives);
+    const icons = this.children.getByName('lives');
+    if (icons) this.tweens.add({ targets: icons, scale: 1.12, yoyo: true, duration: 110 });
   }
   private drawExits(): void {
     this.exitGraphic.clear();
     for (let i = 0; i < 3; i++) {
-      const x = 150 + i * 240;
-      this.exitGraphic.fillStyle(HEX[this.laneNames[i]], 1);
-      this.exitGraphic.fillRoundedRect(x - 68, 1090, 136, 70, 22);
-      symbol(this.exitGraphic, this.laneNames[i], x, 1125, 20);
-      this.exitGraphic.fillStyle(0xfaf7f0, 1);
-      this.exitGraphic.fillRoundedRect(x - 28, 1098, 56, 54, 14);
-      symbol(this.exitGraphic, this.laneNames[i], x, 1125, 15);
+      const x = 140 + i * 250;
+      this.exitGraphic.fillStyle(HEX[this.laneNames[i]], .22);
+      this.exitGraphic.fillRoundedRect(x - 116, 1005, 232, 345, 34);
+      this.exitGraphic.lineStyle(3, HEX[this.laneNames[i]], .72);
+      this.exitGraphic.strokeRoundedRect(x - 116, 1005, 232, 345, 34);
+      this.exitGraphic.fillStyle(HEX[this.laneNames[i]], .14);
+      for (let yy = 1030; yy < 1335; yy += 58) this.exitGraphic.fillRoundedRect(x - 94, yy, 188, 10, 5);
+      // A faint lane glyph labels the chute without reading as another control.
+      this.exitGraphic.fillStyle(HEX[this.laneNames[i]], .4);
+      symbol(this.exitGraphic, this.laneNames[i], x, 1080, 21);
     }
   }
   private drawDiverter(): void {
     const g = this.add.graphics();
     g.lineStyle(3, 0x353431, 0.12);
-    [150, 390, 630].forEach((x) => g.lineBetween(390, 1040, x, 1083));
+    [140, 390, 640].forEach((x) => g.lineBetween(390, 1010, x, 1050));
     g.fillStyle(0xe4ded1, 1);
-    g.fillRoundedRect(359, 1002, 62, 48, 18);
+    g.fillRoundedRect(354, 970, 72, 58, 18);
     g.fillStyle(0xfaf7f0, 1);
-    g.fillTriangle(365, 1022, 415, 1022, 390, 1060);
+    g.fillTriangle(360, 992, 420, 992, 390, 1038);
     g.fillStyle(0x353431, 0.08);
-    g.fillCircle(390, 1017, 8);
+    g.fillCircle(390, 986, 8);
   }
   update(_time: number, delta: number): void {
     if (this.stateScene !== 'game')
       return;
-    this.conveyor.tick(delta);
+    this.conveyor.tick(delta, getDifficulty(this.score.score).travelMs);
     this.elapsed += delta;
     const diff = getDifficulty(this.score.score);
     if (diff.band !== this.lastBand) {
@@ -186,10 +204,12 @@ export class GameScene extends Phaser.Scene {
     if (this.active) {
       const progress = Math.min(1, (this.elapsed - this.active.start) / this.active.travel);
       this.ballGraphic.clear();
-      ball(this.ballGraphic, this.active.color, 390, 260 + progress * 850, 47);
+      ball(this.ballGraphic, this.active.color, 390 + Math.sin(this.elapsed / 110) * 2, 340 + progress * 610, 70);
       if (progress >= 1) {
         this.active = null;
         this.ballGraphic.clear();
+        this.ballGraphic.fillStyle(0xaaa69e, .9); this.ballGraphic.fillCircle(390, 950, 70);
+        this.tweens.add({ targets: this.ballGraphic, y: 45, alpha: 0, duration: 210, onComplete: () => this.ballGraphic.clear().setPosition(0, 0).setAlpha(1) });
         this.resolve(false);
       }
     }
@@ -209,40 +229,42 @@ export class GameScene extends Phaser.Scene {
       }
       this.active = { color: item.color, correctLane: item.correctLane, start: this.elapsed, travel: diff.travelMs };
       this.ballGraphic.clear();
-      ball(this.ballGraphic, item.color, 390, 260, 47);
+      ball(this.ballGraphic, item.color, 390, 340, 70);
     }
     this.publish();
   }
   private choose(lane: number): void {
     if (this.stateScene !== 'game' || !this.active)
       return;
+    if (this.time.now - this.lastTap[lane] < 120) return;
+    this.lastTap[lane] = this.time.now;
     const correct = lane === this.active.correctLane;
     const color = this.active.color;
+    const wasMiss = false;
+    const point = this.active ? Math.max(0, Math.min(1, (this.elapsed - this.active.start) / this.active.travel)) : 0;
     this.active = null;
-    this.tweens.add({
-      targets: this.ballGraphic,
-      x: 130 + lane * 260 - 390,
-      y: 1125 - (260 + 850),
-      scale: 0.3,
-      alpha: 0.2,
-      duration: 190,
-      ease: 'Cubic.Out',
-      onComplete: () => this.ballGraphic.clear().setPosition(0, 0).setScale(1).setAlpha(1),
-    });
-    this.resolve(correct, color, lane);
+    if (correct) this.tweens.add({ targets: this.ballGraphic, x: (140 + lane * 250) - 390, y: 1080 - (340 + point * 610), scale: .42, alpha: .22, duration: 260, ease: 'Cubic.InOut', onComplete: () => this.ballGraphic.clear().setPosition(0, 0).setScale(1).setAlpha(1) });
+    this.resolve(correct, color, lane, wasMiss);
   }
-  private resolve(correct: boolean, color?: ColorName, lane?: number): void {
+  private resolve(correct: boolean, color?: ColorName, lane?: number, _wasMiss = false): void {
     const result = this.score.sort(correct);
     this.obj('score').setText(String(this.score.score));
     this.obj('combo').setText(`COMBO  ${this.score.combo}`);
+    this.tweens.add({ targets: this.obj('combo'), scale: 1.14, yoyo: true, duration: 100 });
     this.updateLives(this.score.lives);
     if (correct) {
       this.correctCount++;
-      this.audio.tone('good');
-      const x = 130 + (lane ?? 0) * 260;
+      this.lastCorrectAt = this.elapsed;
+      this.playSound('correct');
+      this.obj('score').setScale(1.25);
+      this.tweens.add({ targets: this.obj('score'), scale: 1, duration: 200, ease: 'Back.Out' });
+      this.scorePopCount++;
+      const x = 140 + (lane ?? 0) * 250;
+      this.exitGraphic.setAlpha(1);
+      this.tweens.add({ targets: this.exitGraphic, alpha: .65, yoyo: true, duration: 120 });
       this.tweens.add({ targets: this.lanes[lane ?? 0], scaleX: 1.06, scaleY: 1.06, yoyo: true, duration: 100 });
       this.toastAt('+1', x, 1190, color);
-      this.particles(x, 1125, color ?? 'mint');
+      this.particles(x, 1115, color ?? 'mint');
       if (this.correctCount === 3) {
         this.tweens.add({ targets: this.hint, alpha: 0, duration: 500 });
       }
@@ -252,10 +274,14 @@ export class GameScene extends Phaser.Scene {
       }
     }
     else {
-      this.audio.tone('bad');
+      if (color) this.wrongCount++; else this.missCount++;
+      this.playSound(color ? 'wrong' : 'miss', false);
       this.cameras.main.shake(140, 0.004);
-      if (color)
-        this.tweens.add({ targets: this.ballGraphic, alpha: 0, duration: 180, onComplete: () => this.ballGraphic.clear() });
+      if (color) {
+        this.ballGraphic.clear();
+        this.ballGraphic.fillStyle(0xaaa69e, .9); this.ballGraphic.fillCircle(390, 1000, 70);
+        this.tweens.add({ targets: this.ballGraphic, y: 60, alpha: 0, duration: 220, onComplete: () => this.ballGraphic.clear().setPosition(0, 0).setAlpha(1) });
+      }
       else
         this.toast('TOO LATE');
     }
@@ -278,6 +304,8 @@ export class GameScene extends Phaser.Scene {
         laneColors: [...this.laneNames],
         travelMs: finalDifficulty.travelMs,
         gapMs: finalDifficulty.gapMs,
+        fx: { lastCorrectAt: this.lastCorrectAt, correctCount: this.correctCount, wrongCount: this.wrongCount, missCount: this.missCount, scorePopCount: this.scorePopCount, particleBursts: this.particleBursts, lastSound: this.lastSound, soundCount: this.soundCount },
+        elapsedMs: this.elapsed,
       });
     }
   }
@@ -306,6 +334,7 @@ export class GameScene extends Phaser.Scene {
     });
   }
   private particles(x: number, y: number, color: ColorName): void {
+    this.particleBursts++;
     const g = this.add.graphics();
     g.fillStyle(HEX[color], 1);
     for (let i = 0; i < 8; i++) {
@@ -313,6 +342,10 @@ export class GameScene extends Phaser.Scene {
       g.fillCircle(x + Math.cos(angle) * 25, y + Math.sin(angle) * 25, 7);
     }
     this.tweens.add({ targets: g, alpha: 0, scale: 1.8, duration: 320, onComplete: () => g.destroy() });
+  }
+  private playSound(kind: 'correct' | 'wrong' | 'miss', good = kind === 'correct'): void {
+    this.lastSound = kind; this.soundCount++;
+    this.audio.tone(good ? 'good' : 'bad', this.score.combo);
   }
   private showPause(): void {
     if (this.stateScene !== 'game')
@@ -347,6 +380,9 @@ export class GameScene extends Phaser.Scene {
       travelMs: difficulty.travelMs,
       gapMs: difficulty.gapMs,
       buttons,
+      elapsedMs: this.elapsed,
+      fx: { lastCorrectAt: this.lastCorrectAt, correctCount: this.correctCount, wrongCount: this.wrongCount, missCount: this.missCount, scorePopCount: this.scorePopCount, particleBursts: this.particleBursts, lastSound: this.lastSound, soundCount: this.soundCount },
+      layout: { hud: { top: 0, bottom: 240 }, play: { top: 250, bottom: 1300 }, controls: { top: 1390, bottom: 1620 }, hint: { x: 390, y: 1360, w: 500, h: 40, visible: this.hint.alpha > 0, alpha: this.hint.alpha } },
     };
     window.__COLORFACTORY__ = {
       getState: () => Object.freeze({

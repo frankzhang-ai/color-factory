@@ -8,9 +8,10 @@ export type Difficulty = {
 };
 export function getDifficulty(score: number): Difficulty {
   const band = score >= 76 ? 6 : score >= 51 ? 5 : score >= 31 ? 4 : score >= 21 ? 3 : score >= 11 ? 2 : 1;
+  // The opening is intentionally forgiving; later bands alter only one axis each.
   const colorsInPool = score >= 51 ? 5 : score >= 21 ? 4 : 3;
-  const travelMs = score >= 76 ? Math.max(900, 2000 - (score - 76) * 20) : score >= 11 ? 2000 : 2600;
-  const gapMs = score >= 31 ? 350 : 650;
+  const travelMs = score >= 76 ? Math.max(900, 1800 - (score - 76) * 18) : score >= 11 ? 2600 : 3500;
+  const gapMs = score >= 31 ? 500 : 900;
   return { band, colorsInPool, travelMs, gapMs };
 }
 export function pickLanes(pool: readonly ColorName[], random: () => number = Math.random): [

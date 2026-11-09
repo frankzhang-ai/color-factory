@@ -15,24 +15,23 @@ export class AudioSystem {
     }
     catch { /* Audio may be unavailable in embedded browsers. */ }
   }
-  tone(kind: 'good' | 'bad' = 'good'): void {
-    if (!this.enabled)
-      return;
+  tone(kind: 'good' | 'bad' = 'good', combo = 0): void {
     this.unlock();
-    if (!this.context)
+    if (!this.enabled || !this.context)
       return;
     try {
-      const oscillator = this.context.createOscillator();
-      const gain = this.context.createGain();
-      oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(kind === 'good' ? 650 : 180, this.context.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(kind === 'good' ? 980 : 120, this.context.currentTime + 0.12);
-      gain.gain.setValueAtTime(0.08, this.context.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, this.context.currentTime + 0.14);
-      oscillator.connect(gain);
-      gain.connect(this.context.destination);
-      oscillator.start();
-      oscillator.stop(this.context.currentTime + 0.15);
+      const notes = kind === 'good' ? [660 + Math.min(combo, 12) * 12, 880 + Math.min(combo, 12) * 14] : [190, 145];
+      notes.forEach((frequency, index) => {
+        const oscillator = this.context!.createOscillator();
+        const gain = this.context!.createGain();
+        oscillator.type = 'sine';
+        oscillator.frequency.value = frequency;
+        const start = this.context!.currentTime + index * (kind === 'good' ? .075 : .025);
+        gain.gain.setValueAtTime(kind === 'good' ? 0.055 : 0.035, start);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + .12);
+        oscillator.connect(gain); gain.connect(this.context!.destination);
+        oscillator.start(start); oscillator.stop(start + .13);
+      });
     }
     catch { /* Ignore audio device errors. */ }
   }

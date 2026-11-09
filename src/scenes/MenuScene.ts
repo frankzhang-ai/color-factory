@@ -8,7 +8,7 @@ export class MenuScene extends Phaser.Scene {
   constructor() { super('menu'); }
   create(): void {
     this.soundEnabled = getSound();
-    window.__COLORFACTORY__ = { getState: () => Object.freeze({ scene: 'menu', score: 0, best: getBest(), lives: 3, combo: 0, comboTier: null, band: 1, colorsInPool: 3, laneColors: Object.freeze(['coral', 'blue', 'mint'] as const), ball: null, travelMs: 2600, gapMs: 650, buttons: Object.freeze([]) }) };
+    window.__COLORFACTORY__ = { getState: () => Object.freeze({ scene: 'menu', score: 0, best: getBest(), lives: 3, combo: 0, comboTier: null, band: 1, colorsInPool: 3, laneColors: Object.freeze(['coral', 'blue', 'mint'] as const), ball: null, travelMs: 3500, gapMs: 900, buttons: Object.freeze([]), fx: { lastCorrectAt: 0, correctCount: 0, wrongCount: 0, missCount: 0, scorePopCount: 0, particleBursts: 0, lastSound: null, soundCount: 0 }, elapsedMs: 0, layout: { hud: { top: 0, bottom: 240 }, play: { top: 250, bottom: 1300 }, controls: { top: 1390, bottom: 1620 }, hint: null } }) };
     const g = this.add.graphics();
     ball(g, 'coral', 285, 440, 48);
     ball(g, 'blue', 390, 440, 48);

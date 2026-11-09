@@ -21,4 +21,4 @@ else {
   }
   g.fillPoints(pts, true);
 } }
-export function ball(g: Phaser.GameObjects.Graphics, color: ColorName, x: number, y: number, r: number): void { g.fillStyle(HEX[color], 1); g.fillCircle(x, y, r); g.fillStyle(0xffffff, .2); g.fillCircle(x - r * .28, y - r * .34, r * .28); symbol(g, color, x, y, r * .35); }
+export function ball(g: Phaser.GameObjects.Graphics, color: ColorName, x: number, y: number, r: number): void { g.fillStyle(HEX[color], 1); g.fillCircle(x, y, r); g.fillStyle(0xffffff, .2); g.fillCircle(x - r * .28, y - r * .34, r * .28); symbol(g, color, x, y, r * .55); }
