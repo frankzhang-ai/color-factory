@@ -193,8 +193,10 @@ export class GameScene extends Phaser.Scene {
   private drawDiverter(): void {
     const g = this.add.graphics();
     g.fillStyle(0x39464c,1);g.fillRoundedRect(340,975,100,50,12);g.lineStyle(3,0xaab4b6,1);g.strokeRoundedRect(340,975,100,50,12);
-    g.fillStyle(0xd2d8d5,1);g.fillPoints([{x:374,y:986},{x:406,y:986},{x:390,y:1040}],true);g.lineStyle(2,0x7b898d,1);g.strokePoints([{x:374,y:986},{x:406,y:986},{x:390,y:1040}],true);
-    g.fillStyle(0x263239,1);g.fillCircle(390,989,8);g.setName('flipper');
+    // Flipper drawn around its pivot so it swings in place toward the chosen chute.
+    const f = this.add.graphics().setPosition(390, 989);
+    f.fillStyle(0xd2d8d5,1);f.fillPoints([{x:-16,y:-3},{x:16,y:-3},{x:0,y:51}],true);f.lineStyle(2,0x7b898d,1);f.strokePoints([{x:-16,y:-3},{x:16,y:-3},{x:0,y:51}],true);
+    f.fillStyle(0x263239,1);f.fillCircle(0,0,8);f.setName('flipper');
   }
   private drawLevelBar():void { const p=(this.score.score%10)/10;this.levelBar.clear();this.levelBar.fillStyle(0xe4ded1,1);this.levelBar.fillRoundedRect(286,237,208,10,5);this.levelBar.fillStyle(0x85b9d8,1);this.levelBar.fillRoundedRect(286,237,208*p,10,5); }
   update(_time: number, delta: number): void {
@@ -253,13 +255,20 @@ export class GameScene extends Phaser.Scene {
     const point = this.active ? Math.max(0, Math.min(1, (this.elapsed - this.active.start) / this.active.travel)) : 0;
     this.active = null;
     if (correct) {
-      this.lanePauseUntil=this.elapsed+650;
-      const button=this.lanes[lane];const flipper=this.children.getByName('flipper');
-      this.tweens.add({targets:this.ballGraphic,scaleX:1.18,scaleY:.78,duration:75,yoyo:true,onComplete:()=>{
-        this.tweens.add({targets:flipper,rotation:(lane-1)*.48,duration:150,yoyo:true,onComplete:()=>{}});
-        this.tweens.add({targets:this.ballGraphic,x:(140+lane*250)-390,y:1080-(390+point*560),scale:.08,alpha:.1,duration:360,ease:'Cubic.In',onComplete:()=>{this.ballGraphic.clear().setPosition(0,0).setScale(1).setAlpha(1);this.resolve(true,color,lane,wasMiss);}});
-        this.chuteFlash.clear();this.chuteFlash.fillStyle(HEX[color],.3);this.chuteFlash.fillEllipse(140+lane*250,1337,130,28);this.tweens.add({targets:this.chuteFlash,alpha:0,duration:280,onComplete:()=>this.chuteFlash.clear().setAlpha(1)});
-      }});
+      // Immediate feedback (score, sound, particles) on tap; the ball animation runs on its own sprite so the next ball is not delayed.
+      const y0 = 390 + point * 560;
+      this.ballGraphic.clear();
+      const fly = this.add.graphics().setDepth(this.ballGraphic.depth);
+      ball(fly, color, 0, 0, 70, this.skin, this.elapsed / 85);
+      fly.setPosition(390, y0);
+      const flipper = this.children.getByName('flipper');
+      if (flipper) this.tweens.add({ targets: flipper, rotation: -(lane - 1) * .48, duration: 150, yoyo: true });
+      this.tweens.add({ targets: fly, scaleX: 1.18, scaleY: .78, duration: 70, yoyo: true, onComplete: () => {
+        this.tweens.add({ targets: fly, x: 140 + lane * 250, y: 1080, scaleX: .08, scaleY: .08, alpha: .1, duration: 300, ease: 'Cubic.In', onComplete: () => fly.destroy() });
+      } });
+      this.chuteFlash.clear(); this.chuteFlash.fillStyle(HEX[color], .3); this.chuteFlash.fillEllipse(140 + lane * 250, 1337, 130, 28);
+      this.tweens.add({ targets: this.chuteFlash, alpha: 0, duration: 280, onComplete: () => this.chuteFlash.clear().setAlpha(1) });
+      this.resolve(true, color, lane, wasMiss);
     } else {
       this.resolve(false,color,lane,wasMiss);
     }
