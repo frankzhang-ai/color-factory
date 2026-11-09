@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { text,floatingShapes } from '../objects/draw.ts';
+import { text,floatingShapes,ball } from '../objects/draw.ts';
 import { getUnlockedSkins,SKINS } from '../systems/Storage.ts';
 import type { Tier } from '../systems/ScoreManager.ts';
 import type { ColorName } from '../systems/DifficultyManager.ts';
@@ -16,12 +16,16 @@ export class GameOverScene extends Phaser.Scene {
     text(this,390,310,'RUN COMPLETE',46);
     text(this,390,415,'SCORE',22,'#77746d');text(this,390,500,String(d.score),100);
     text(this,390,620,`BEST  ${d.best}`,28);
-    if(d.newBest){const best=text(this,390,710,'NEW BEST!',40,'#e98980');best.setScale(.4);this.tweens.add({targets:best,scale:1.1,duration:450,ease:'Back.Out'});this.confetti();}
-    else text(this,390,710,`${Math.max(0,d.best-d.score)} TO BEAT YOUR BEST`,21,'#77746d','normal');
-    const unlockText=newly?`NEW SKIN UNLOCKED: ${newly}!`:next?`NEXT UNLOCK: ${next.name} IN ${Math.max(0,next.at-d.best)}`:'ALL SKINS UNLOCKED';
-    text(this,390,815,unlockText,21,'#77746d');
-    const play=this.add.graphics();play.fillStyle(0xe98980,1);play.fillRoundedRect(105,1000,570,140,36);play.setInteractive(new Phaser.Geom.Rectangle(105,1000,570,140),Phaser.Geom.Rectangle.Contains).on('pointerdown',()=>this.scene.start('game'));text(this,390,1070,'PLAY AGAIN',34);
-    const menu=this.add.graphics();menu.fillStyle(0xffffff,1);menu.lineStyle(3,0xe4ded1,1);menu.fillRoundedRect(150,1180,480,110,30);menu.strokeRoundedRect(150,1180,480,110,30);menu.setInteractive(new Phaser.Geom.Rectangle(150,1180,480,110),Phaser.Geom.Rectangle.Contains).on('pointerdown',()=>this.scene.start('menu'));text(this,390,1235,'MENU',28);
+    if(d.newBest){const best=text(this,390,680,'NEW BEST!',44,'#e98980');best.setScale(.35);this.tweens.add({targets:best,scale:1.12,duration:430,ease:'Back.Out',yoyo:true,hold:100});this.tweens.add({targets:bg,alpha:.5,duration:260,yoyo:true,repeat:2});this.confetti();}
+    else text(this,390,680,`${Math.max(0,d.best-d.score)} TO BEAT YOUR BEST (${d.best})`,23,'#77746d','normal');
+    if(newly){text(this,390,775,`NEW SKIN UNLOCKED: ${newly}!`,23,'#8d7652');const preview=this.add.graphics();ball(preview,'coral',650,775,24,newly,0);}
+    if(next){
+      text(this,390,newly?865:795,`NEXT UNLOCK: ${next.name} IN ${Math.max(0,next.at-d.best)} PTS`,22,'#77746d');
+      const barY=newly?912:842;const bar=this.add.graphics();bar.fillStyle(0xe4ded1,1);bar.fillRoundedRect(230,barY,320,14,7);bar.fillStyle(0x85b9d8,1);bar.fillRoundedRect(230,barY,320*Math.min(1,d.best/next.at),14,7);
+      const preview=this.add.graphics();ball(preview,'coral',590,barY+8,25,next.name,0);preview.setAlpha(.8);
+    } else text(this,390,795,'ALL SKINS UNLOCKED',22,'#77746d');
+    const play=this.add.graphics();play.fillStyle(0xe98980,1);play.fillRoundedRect(105,1020,570,132,36);play.lineStyle(4,0xffffff,.65);play.strokeRoundedRect(105,1020,570,132,36);play.setInteractive(new Phaser.Geom.Rectangle(105,1020,570,132),Phaser.Geom.Rectangle.Contains).on('pointerdown',()=>this.scene.start('game'));text(this,390,1086,'PLAY AGAIN',34);
+    const menu=this.add.graphics();menu.fillStyle(0xffffff,1);menu.lineStyle(3,0xe4ded1,1);menu.fillRoundedRect(150,1190,480,96,30);menu.strokeRoundedRect(150,1190,480,96,30);menu.setInteractive(new Phaser.Geom.Rectangle(150,1190,480,96),Phaser.Geom.Rectangle.Contains).on('pointerdown',()=>this.scene.start('menu'));text(this,390,1238,'MENU',28);
   }
   private confetti():void{const g=this.add.graphics();const colors=[0xe98980,0x85b9d8,0x9ac9ac,0xe9cd83,0xb8a6d9];for(let i=0;i<32;i++){g.fillStyle(colors[i%colors.length],1);g.fillRect(90+(i*73)%600,200+(i*97)%700,9,14);}this.tweens.add({targets:g,alpha:0,y:100,duration:1000,onComplete:()=>g.destroy()});}
 }

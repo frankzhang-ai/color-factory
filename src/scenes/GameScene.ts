@@ -105,7 +105,7 @@ export class GameScene extends Phaser.Scene {
     this.audio = new AudioSystem(getSound());
     this.stateScene = 'game';
     this.runStartedAt = this.time.now;
-    this.add.text(390,65,'0',{fontFamily:'system-ui,sans-serif',fontSize:'84px',fontStyle:'bold',color:'#353431',letterSpacing:5}).setOrigin(.5).setName('score');
+    this.add.text(390,65,'0',{fontFamily:'system-ui,sans-serif',fontSize:'84px',fontStyle:'bold',color:'#353431',letterSpacing:5,shadow:{offsetX:0,offsetY:3,color:'#8e8679',blur:5,fill:true}}).setOrigin(.5).setName('score');
     this.drawLives(3);
     text(this, 390, 155, 'COMBO  0', 22, '#77746d').setName('combo');
     const comboPill=this.add.graphics();comboPill.fillStyle(0xffffff,.72);comboPill.fillRoundedRect(302,132,176,46,23);comboPill.lineStyle(2,0xe4ded1,.9);comboPill.strokeRoundedRect(302,132,176,46,23);comboPill.setDepth(-1);
@@ -158,9 +158,9 @@ export class GameScene extends Phaser.Scene {
       const x = 56 + i * 43;
       if (i < lives) {
         g.fillStyle(0xe98980, 1);
-        g.fillCircle(x - 5, 72, 8);
-        g.fillCircle(x + 5, 72, 8);
-        g.fillTriangle(x - 13, 76, x + 13, 76, x, 91);
+        g.fillCircle(x - 6, 70, 9);
+        g.fillCircle(x + 6, 70, 9);
+        g.fillTriangle(x - 15, 75, x + 15, 75, x, 93);
       }
       else {
         g.lineStyle(3, 0xd7d0c5, 1);
@@ -180,23 +180,24 @@ export class GameScene extends Phaser.Scene {
     for (let i = 0; i < 3; i++) {
       const x = 140 + i * 250;
       const dx=x-390, topX=390+dx*.45;
-      this.exitGraphic.fillStyle(0x27333a,1);
-      this.exitGraphic.fillPoints([{x:topX-38,y:1010},{x:topX+38,y:1010},{x:x+76,y:1350},{x:x-76,y:1350}],true);
-      this.exitGraphic.lineStyle(8,0x66747a,1);this.exitGraphic.lineBetween(topX-38,1010,x-76,1350);this.exitGraphic.lineBetween(topX+38,1010,x+76,1350);
-      this.exitGraphic.lineStyle(7,HEX[this.laneNames[i]],1);this.exitGraphic.lineBetween(topX-34,1018,topX+34,1018);
-      this.exitGraphic.fillStyle(0x111a20,1);this.exitGraphic.fillEllipse(x,1337,130,28);
+      this.exitGraphic.fillStyle(0xa79f92,.2);this.exitGraphic.fillPoints([{x:topX-43,y:1003},{x:topX+43,y:1003},{x:x+84,y:1354},{x:x-84,y:1354}],true);
+      this.exitGraphic.fillStyle(0xe4ded3,1);this.exitGraphic.fillPoints([{x:topX-37,y:1010},{x:topX+37,y:1010},{x:x+76,y:1350},{x:x-76,y:1350}],true);
+      this.exitGraphic.lineStyle(8,0xb9b2a5,1);this.exitGraphic.lineBetween(topX-38,1010,x-76,1350);this.exitGraphic.lineBetween(topX+38,1010,x+76,1350);
+      this.exitGraphic.lineStyle(20,HEX[this.laneNames[i]],.95);this.exitGraphic.lineBetween(topX-30,1015,topX+30,1015);
+      this.exitGraphic.fillStyle(0x6f6a62,.8);this.exitGraphic.fillEllipse(x,1337,130,28);
+      this.exitGraphic.fillStyle(HEX[this.laneNames[i]],.2);this.exitGraphic.fillEllipse(x,1337,145,40);
       this.exitGraphic.lineStyle(4,HEX[this.laneNames[i]],.9);this.exitGraphic.strokeEllipse(x,1337,130,28);
-      this.exitGraphic.fillStyle(HEX[this.laneNames[i]],.22);
+      this.exitGraphic.fillStyle(HEX[this.laneNames[i]],.45);
       for(let yy=1060;yy<1305;yy+=62){const t=(yy-1010)/340,cx=topX+(x-topX)*t;this.exitGraphic.fillTriangle(cx-10,yy,cx+10,yy,cx,yy+21);}
     }
   }
   private drawDiverter(): void {
     const g = this.add.graphics();
-    g.fillStyle(0x39464c,1);g.fillRoundedRect(340,975,100,50,12);g.lineStyle(3,0xaab4b6,1);g.strokeRoundedRect(340,975,100,50,12);
+    g.fillStyle(0xd8d1c6,1);g.fillRoundedRect(340,975,100,50,12);g.lineStyle(3,0xb9b2a5,1);g.strokeRoundedRect(340,975,100,50,12);
     // Flipper drawn around its pivot so it swings in place toward the chosen chute.
     const f = this.add.graphics().setPosition(390, 989);
-    f.fillStyle(0xd2d8d5,1);f.fillPoints([{x:-16,y:-3},{x:16,y:-3},{x:0,y:51}],true);f.lineStyle(2,0x7b898d,1);f.strokePoints([{x:-16,y:-3},{x:16,y:-3},{x:0,y:51}],true);
-    f.fillStyle(0x263239,1);f.fillCircle(0,0,8);f.setName('flipper');
+    f.fillStyle(0xe9e5dc,1);f.fillPoints([{x:-16,y:-3},{x:16,y:-3},{x:0,y:51}],true);f.lineStyle(2,0xb9b2a5,1);f.strokePoints([{x:-16,y:-3},{x:16,y:-3},{x:0,y:51}],true);
+    f.fillStyle(0xb9b2a5,1);f.fillCircle(0,0,8);f.setName('flipper');
   }
   private drawLevelBar():void { const p=(this.score.score%10)/10;this.levelBar.clear();this.levelBar.fillStyle(0xe4ded1,1);this.levelBar.fillRoundedRect(286,237,208,10,5);this.levelBar.fillStyle(0x85b9d8,1);this.levelBar.fillRoundedRect(286,237,208*p,10,5); }
   update(_time: number, delta: number): void {
@@ -281,7 +282,7 @@ export class GameScene extends Phaser.Scene {
     this.tweens.add({ targets: this.obj('combo'), scale: 1.14, yoyo: true, duration: 100 });
     this.updateLives(this.score.lives);
     this.levelText.setText(`LEVEL ${Math.floor(this.score.score/10)+1}`);this.drawLevelBar();
-    if(correct&&this.score.score>0&&this.score.score%10===0){this.levelUps++;this.levelText.setScale(1.2);this.tweens.add({targets:this.levelText,scale:1,duration:260,ease:'Back.Out'});this.levelText.setColor('#e98980');this.time.delayedCall(350,()=>this.levelText.setColor('#77746d'));this.toast(`LEVEL ${Math.floor(this.score.score/10)+1}`);this.particles(390,750,'yellow');}
+    if(correct&&this.score.score>0&&this.score.score%10===0){this.levelUps++;this.levelText.setScale(.7);this.tweens.add({targets:this.levelText,scale:1.2,duration:170,yoyo:true,hold:100,ease:'Back.Out'});this.levelText.setColor('#e98980');this.time.delayedCall(550,()=>this.levelText.setColor('#77746d'));this.levelBar.setAlpha(.35);this.tweens.add({targets:this.levelBar,alpha:1,duration:300,yoyo:true});this.toast(`LEVEL ${Math.floor(this.score.score/10)+1}`);this.particles(390,750,'yellow');}
     this.vibrate(correct?10:30,correct);
     if (correct) {
       this.correctCount++;
@@ -297,6 +298,7 @@ export class GameScene extends Phaser.Scene {
       this.tweens.add({ targets: this.exitGraphic, alpha: .65, yoyo: true, duration: 120 });
       this.tweens.add({ targets: this.lanes[lane ?? 0], scaleX: .94, scaleY: .88, yoyo: true, duration: 105 });
       this.toastAt('+1', x, 1190, color);
+      if(this.score.combo>=2)this.toastAt(`x${this.score.combo}`,x,1290,color);
       this.particles(x, 1115, color ?? 'mint');
       if(this.score.combo>=3){this.particles(x,1115,color??'mint');}
       if (this.correctCount === 3) {
@@ -358,22 +360,20 @@ export class GameScene extends Phaser.Scene {
   }
   private showTier(tier: Tier, color: ColorName): void {
     this.tierShown=tier;this.tierBursts++;
-    const size=tier==='FANTASTIC'?86:tier==='PERFECT'?74:tier==='GREAT'?64:54;
-    const item = text(this, 390, 840, tier, size, `#${HEX[color].toString(16).padStart(6, '0')}`);
-    item.setScale(0.6);
+    this.tweens.add({targets:this.hint,alpha:0,duration:120});
+    const size=tier==='FANTASTIC'?100:tier==='PERFECT'?88:tier==='GREAT'?76:64;
+    const targets: Phaser.GameObjects.Text[] = tier==='FANTASTIC'
+      ? [...tier].map((letter,index)=>this.add.text(390-261+index*58,300,letter,{fontFamily:'system-ui,sans-serif',fontSize:`${size}px`,fontStyle:'bold',color:'#ffffff',stroke:`#${[0xe98980,0xe9cd83,0x9ac9ac,0x85b9d8,0xb8a6d9][index%5].toString(16)}`,strokeThickness:8,shadow:{offsetX:0,offsetY:5,color:'#6f665b',blur:9,fill:true}}).setOrigin(.5).setScale(.05))
+      : [this.add.text(390,300,tier,{fontFamily:'system-ui,sans-serif',fontSize:`${size}px`,fontStyle:'bold',color:'#ffffff',stroke:`#${HEX[color].toString(16).padStart(6,'0')}`,strokeThickness:8,shadow:{offsetX:0,offsetY:5,color:'#6f665b',blur:9,fill:true},align:'center'}).setOrigin(.5).setScale(.05)];
     this.tweens.add({
-      targets: item,
-      scale: tier==='FANTASTIC'?1.45:tier==='PERFECT'?1.32:1.15,
-      duration: 220,
-      ease: 'Back.Out',
-      yoyo: true,
-      hold: 90,
-      onComplete: () => this.tweens.add({ targets: item, alpha: 0, y: 800, duration: 350, onComplete: () => item.destroy() }),
+      targets,
+      scale: 1.2, duration: 180, ease: 'Back.Out', yoyo: true, hold: 550,
+      onComplete: () => { this.tweens.add({ targets, alpha: 0, y: 250, duration: 340, onComplete: () => targets.forEach(item=>item.destroy()) }); },
     });
-    if(tier!=='GOOD'){this.particles(390,840,color);this.particles(390,840,color);}
-    if(tier==='GREAT'||tier==='PERFECT'||tier==='FANTASTIC'){const ring=this.add.graphics();ring.lineStyle(tier==='FANTASTIC'?8:5,HEX[color],.8);ring.strokeCircle(390,840,45);this.tweens.add({targets:ring,scale:3,alpha:0,duration:430,onComplete:()=>ring.destroy()});}
+    if(tier!=='GOOD'){this.particles(390,300,color);if(tier!=='GREAT')this.particles(390,300,color);}
+    if(tier==='GREAT'||tier==='PERFECT'||tier==='FANTASTIC'){const ring=this.add.graphics().setPosition(390,300);ring.lineStyle(tier==='FANTASTIC'?9:6,HEX[color],.9);ring.strokeCircle(0,0,48);this.tweens.add({targets:ring,scale:3.2,alpha:0,duration:500,onComplete:()=>ring.destroy()});}
     if(tier==='PERFECT'){this.cameras.main.zoomTo(1.035,120);this.time.delayedCall(180,()=>this.cameras.main.zoomTo(1,150));}
-    if(tier==='FANTASTIC'){this.cameras.main.flash(130,255,245,215);this.vibrate(10,true);const confetti=this.add.graphics();const colors=[0xe98980,0x85b9d8,0x9ac9ac,0xe9cd83,0xb8a6d9];for(let i=0;i<28;i++){confetti.fillStyle(colors[i%5],1);confetti.fillRect(250+(i*47)%280,760+(i*71)%150,9,15);}this.tweens.add({targets:confetti,alpha:0,y:70,duration:650,onComplete:()=>confetti.destroy()});}
+    if(tier==='FANTASTIC'){this.cameras.main.flash(110,255,250,235);this.vibrate(10,true);const confetti=this.add.graphics();const colors=[0xe98980,0x85b9d8,0x9ac9ac,0xe9cd83,0xb8a6d9];for(let i=0;i<44;i++){confetti.fillStyle(colors[i%5],1);confetti.fillRect(120+(i*47)%540,220+(i*71)%300,10,16);}this.tweens.add({targets:confetti,alpha:0,y:70,duration:750,onComplete:()=>confetti.destroy()});}
   }
   private particles(x: number, y: number, color: ColorName): void {
     this.particleBursts++;
