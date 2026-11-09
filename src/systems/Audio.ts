@@ -1,6 +1,7 @@
 export class AudioSystem {
   enabled: boolean;
   private context: AudioContext | null = null;
+  lastPitch: number | null = null;
   constructor(enabled = true) { this.enabled = enabled; }
   unlock(): void {
     try {
@@ -20,7 +21,8 @@ export class AudioSystem {
     if (!this.enabled || !this.context)
       return;
     try {
-      const notes = kind === 'good' ? [660 + Math.min(combo, 12) * 12, 880 + Math.min(combo, 12) * 14] : [190, 145];
+      const notes = kind === 'good' ? [523.25 * Math.pow(2,Math.min(combo,24)/12), 659.25 * Math.pow(2,Math.min(combo,24)/12)] : [190, 145];
+      this.lastPitch=notes[0];
       notes.forEach((frequency, index) => {
         const oscillator = this.context!.createOscillator();
         const gain = this.context!.createGain();

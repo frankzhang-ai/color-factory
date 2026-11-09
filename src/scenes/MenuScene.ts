@@ -1,34 +1,28 @@
 import Phaser from 'phaser';
-import { ball, text, INK } from '../objects/draw.ts';
-import { getBest, getSound, saveSound } from '../systems/Storage.ts';
+import { ball, text, floatingShapes } from '../objects/draw.ts';
+import { getBest,getSound,saveSound,getSkin,saveSkin,getUnlockedSkins,SKINS,type Skin } from '../systems/Storage.ts';
 import { soundIcon } from './ui.ts';
 export class MenuScene extends Phaser.Scene {
-  private soundEnabled = getSound();
-  private soundGraphic?: Phaser.GameObjects.Graphics;
-  constructor() { super('menu'); }
-  create(): void {
-    this.soundEnabled = getSound();
-    window.__COLORFACTORY__ = { getState: () => Object.freeze({ scene: 'menu', score: 0, best: getBest(), lives: 3, combo: 0, comboTier: null, band: 1, colorsInPool: 3, laneColors: Object.freeze(['coral', 'blue', 'mint'] as const), ball: null, travelMs: 3500, gapMs: 900, buttons: Object.freeze([]), fx: { lastCorrectAt: 0, correctCount: 0, wrongCount: 0, missCount: 0, scorePopCount: 0, particleBursts: 0, lastSound: null, soundCount: 0 }, elapsedMs: 0, layout: { hud: { top: 0, bottom: 240 }, play: { top: 250, bottom: 1300 }, controls: { top: 1390, bottom: 1620 }, hint: null } }) };
-    const g = this.add.graphics();
-    ball(g, 'coral', 285, 440, 48);
-    ball(g, 'blue', 390, 440, 48);
-    ball(g, 'mint', 495, 440, 48);
-    g.fillStyle(0xeee9de, 1);
-    g.fillRoundedRect(265, 505, 250, 25, 12);
-    text(this, 390, 610, 'COLOR FACTORY', 58);
-    text(this, 390, 690, 'Sort it. Match it. Keep it moving.', 25, '#77746d', 'normal');
-    const play = this.add.graphics();
-    play.fillStyle(0xe98980);
-    play.fillRoundedRect(120, 860, 540, 150, 38);
-    play.setInteractive(new Phaser.Geom.Rectangle(120, 860, 540, 150), Phaser.Geom.Rectangle.Contains).on('pointerdown', () => this.scene.start('game'));
-    text(this, 390, 935, 'PLAY', 48);
-    text(this, 390, 1100, 'BEST SCORE   ' + getBest(), 28);
-    text(this, 390, 1290, 'Tap the button that matches the ball’s color.', 21, '#77746d', 'normal');
-    text(this, 390, 1230, 'HOW TO PLAY', 22, INK);
-    const box = this.add.graphics();
-    box.fillStyle(0x353431, .08);
-    box.fillCircle(700, 145, 46);
-    this.soundGraphic = soundIcon(this, 700, 145, this.soundEnabled);
-    box.setInteractive(new Phaser.Geom.Circle(700, 145, 46), Phaser.Geom.Circle.Contains).on('pointerdown', () => { this.soundEnabled = !this.soundEnabled; saveSound(this.soundEnabled); this.soundGraphic?.destroy(); this.soundGraphic = soundIcon(this, 700, 145, this.soundEnabled); });
+  private soundEnabled=getSound();private soundGraphic?:Phaser.GameObjects.Graphics;private skin=getSkin();private skinLabel!:Phaser.GameObjects.Text;
+  constructor(){super('menu');}
+  create():void{
+    this.soundEnabled=getSound();this.skin=getSkin();
+    floatingShapes(this);
+    const state=()=>Object.freeze({scene:'menu' as const,score:0,best:getBest(),lives:3,combo:0,comboTier:null,band:1,colorsInPool:3,laneColors:Object.freeze(['coral','blue','mint'] as const),ball:null,travelMs:2400,gapMs:430,buttons:Object.freeze([]),level:1,levelProgress:0,skin:this.skin,unlockedSkins:Object.freeze(getUnlockedSkins()),firstBallAt:null,fx:{lastCorrectAt:0,correctCount:0,wrongCount:0,missCount:0,scorePopCount:0,particleBursts:0,lastSound:null,soundCount:0,tierShown:null,tierBursts:0,levelUps:0,vibrateCalls:0,lastPitch:null},elapsedMs:0,layout:{hud:{top:0,bottom:240},play:{top:250,bottom:1300},controls:{top:1390,bottom:1620},hint:null}});
+    window.__COLORFACTORY__={getState:state};
+    this.add.text(55,230,'✦',{fontSize:'55px',color:'#e9cd83'});this.add.text(680,390,'●',{fontSize:'80px',color:'#b8a6d9'});this.add.text(90,1140,'△',{fontSize:'90px',color:'#9ac9ac'});
+    const g=this.add.graphics();ball(g,'coral',285,450,46,this.skin,0);ball(g,'blue',390,450,46,this.skin,1);ball(g,'mint',495,450,46,this.skin,2);
+    g.fillStyle(0x293641,1);g.fillRoundedRect(250,510,280,48,14);g.lineStyle(3,0x78838a,1);g.lineBetween(262,518,518,518);g.lineBetween(262,550,518,550);
+    for(let x=275;x<525;x+=35){g.fillStyle(0x9ba6a8,.6);g.fillTriangle(x,525,x+22,525,x+11,543);}
+    text(this,390,660,'COLOR FACTORY',58);text(this,390,725,'SORT • MATCH • KEEP IT MOVING',21,'#77746d','normal');
+    const play=this.add.graphics();play.fillStyle(0xe98980);play.fillRoundedRect(130,850,520,142,40);play.lineStyle(5,0xffffff,.55);play.strokeRoundedRect(130,850,520,142,40);play.setInteractive(new Phaser.Geom.Rectangle(130,850,520,142),Phaser.Geom.Rectangle.Contains).on('pointerdown',()=>this.scene.start('game'));text(this,390,921,'PLAY',48);
+    text(this,390,1070,`BEST SCORE   ${getBest()}`,27);
+    text(this,390,1195,'BALL SKIN',19,'#77746d');
+    const left=text(this,180,1275,'‹',52);left.setInteractive(new Phaser.Geom.Rectangle(135,1235,80,80),Phaser.Geom.Rectangle.Contains).on('pointerdown',()=>this.shift(-1));
+    this.skinLabel=text(this,390,1275,'',25);this.updateSkinLabel();
+    const right=text(this,600,1275,'›',52);right.setInteractive(new Phaser.Geom.Rectangle(565,1235,80,80),Phaser.Geom.Rectangle.Contains).on('pointerdown',()=>this.shift(1));
+    const box=this.add.graphics();box.fillStyle(0x353431,.08);box.fillCircle(700,145,46);this.soundGraphic=soundIcon(this,700,145,this.soundEnabled);box.setInteractive(new Phaser.Geom.Circle(700,145,46),Phaser.Geom.Circle.Contains).on('pointerdown',()=>{this.soundEnabled=!this.soundEnabled;saveSound(this.soundEnabled);this.soundGraphic?.destroy();this.soundGraphic=soundIcon(this,700,145,this.soundEnabled);});
   }
+  private shift(direction:number):void{const best=getBest(),current=SKINS.findIndex(s=>s.name===this.skin);const next=SKINS[(current+direction+SKINS.length)%SKINS.length];if(best>=next.at){this.skin=next.name;saveSkin(this.skin);}this.updateSkinLabel();}
+  private updateSkinLabel():void{const row=SKINS.find(s=>s.name===this.skin)!;const unlocked=getUnlockedSkins().includes(row.name);this.skinLabel.setText(unlocked?`${row.name}  •  BEST ${getBest()}`:`🔒 ${row.name}  •  BEST ${row.at} TO UNLOCK`);this.skinLabel.setFontSize(unlocked?25:18);}
 }

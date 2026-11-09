@@ -24,7 +24,7 @@ function precachePlugin(outDir: string, cachePrefix: string, preview: boolean): 
       const serviceWorker = await readFile(resolve('public/sw.js'), 'utf8');
       const output = serviceWorker
         .replace('__BUILD_HASH__', buildHash)
-        .replace('__CACHE_PREFIX__', cachePrefix)
+        .replaceAll('__CACHE_PREFIX__', cachePrefix)
         .replace('self.__PRECACHE__ = [];', `self.__PRECACHE__ = ${JSON.stringify([...paths, './'])};`);
       await writeFile(resolve(directory, 'sw.js'), output);
       if (preview) {

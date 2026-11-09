@@ -20,3 +20,8 @@ catch {
   return true;
 } }
 export function saveSound(enabled: boolean): void { writeValue('colorfactory.sound', enabled ? 'on' : 'off'); }
+export type Skin = 'Classic' | 'Candy' | 'Marble' | 'Neon' | 'Gold';
+export const SKINS: { name: Skin; at: number }[] = [{name:'Classic',at:0},{name:'Candy',at:20},{name:'Marble',at:50},{name:'Neon',at:100},{name:'Gold',at:200}];
+export function getUnlockedSkins(best = getBest()): Skin[] { return SKINS.filter(s => best >= s.at).map(s => s.name); }
+export function getSkin(): Skin { try { const skin = globalThis.localStorage?.getItem('colorfactory.skin') as Skin | null; return getUnlockedSkins().includes(skin as Skin) ? skin! : 'Classic'; } catch { return 'Classic'; } }
+export function saveSkin(skin: Skin): void { if (getUnlockedSkins().includes(skin)) writeValue('colorfactory.skin', skin); }
