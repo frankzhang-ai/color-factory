@@ -13,7 +13,7 @@ export class MenuScene extends Phaser.Scene {
  private scrollY=0; private lastScroll=Number.NaN; private nodes:Phaser.GameObjects.Container[]=[]; private velocity=0; private dragging=false; private downY=0; private downScroll=0; private moved=false; private world!:Phaser.GameObjects.Container; private soundEnabled=true; private skin:Skin='Classic'; private skinPanel=false;
  constructor(){super('menu');}
  create(data:{scrollY?:number}={}):void {
-  cuteBackdrop(this,true); this.soundEnabled=getSound(); this.skin=getSkin(); this.scrollY=data.scrollY??0;this.lastScroll=Number.NaN;this.velocity=0;this.dragging=false;this.moved=false;
+  cuteBackdrop(this,true); this.soundEnabled=getSound(); this.skin=getSkin(); this.scrollY=data.scrollY??0;this.lastScroll=Number.NaN;this.nodes=[];this.velocity=0;this.dragging=false;this.moved=false;
   this.world=this.add.container(0,0); this.drawMap();
   const today=localDateKey(), streak=currentStreak(today), h=this.scale.height;
   this.add.image(390,74,bake(this,'cflv-map-topbar',780,150,g=>{g.fillStyle(0xffffff,.88);g.fillRoundedRect(20,22,740,105,34);})).setScrollFactor(0);
