@@ -118,10 +118,11 @@ export class GameScene extends Phaser.Scene {
     this.audio = new AudioSystem(getSound());
     this.stateScene = 'game';
     this.runStartedAt = this.time.now;
+    if(this.def){const titlePill=this.add.graphics();titlePill.fillStyle(0xffffff,.85);titlePill.fillRoundedRect(267,30,246,70,30);titlePill.lineStyle(3,0xffdce6,1);titlePill.strokeRoundedRect(267,30,246,70,30);}
     this.add.text(390,65,this.runMode==='endless'?'0':`${this.runMode==='daily'?'DAILY':'LEVEL '+this.levelId}`,{fontFamily:'system-ui,sans-serif',fontSize:this.runMode==='endless'?'84px':'37px',fontStyle:'bold',color:'#353431',letterSpacing:2}).setOrigin(.5).setName('score');
     this.drawLives(this.def?.lives??3);
-    text(this, 390, 155, this.def?this.def.title:'COMBO  0', this.def?17:22, '#77746d').setName('combo');
-    if(this.def){this.goalProgressText=text(this,390,266,`0 / ${this.def.target}`,27,'#59465b');this.goalProgressBar=this.add.graphics();}
+    text(this, 390, 155, this.def?this.def.title:'COMBO  0', this.def?25:22, '#77746d').setName('combo');
+    if(this.def){this.goalProgressText=text(this,390,220,`0 / ${this.def.target}`,38,'#59465b');this.goalProgressBar=this.add.graphics();}
     const comboPill=this.add.graphics();comboPill.fillStyle(0xffffff,.72);comboPill.fillRoundedRect(302,132,176,46,23);comboPill.lineStyle(2,0xe4ded1,.9);comboPill.strokeRoundedRect(302,132,176,46,23);comboPill.setDepth(-1);
     const levelPill=this.add.graphics();levelPill.fillStyle(0xff8fab,1);levelPill.fillRoundedRect(332,195,116,34,17);this.levelText=text(this,390,212,'LEVEL 1',17,'#ffffff');
     this.levelBar=this.add.graphics();this.drawLevelBar();
@@ -132,18 +133,19 @@ export class GameScene extends Phaser.Scene {
     pauseIcon(this, 710, 92);
     pause.setInteractive(new Phaser.Geom.Circle(710, 92, 42), Phaser.Geom.Circle.Contains)
       .on('pointerdown', () => this.showPause());
-    this.conveyor = new Conveyor(this, 390, 690, 410, 720);
+    const v=this.scale.height/1688;
+    this.conveyor = new Conveyor(this, 390, 288 + 360*v, 410, 720*v);
     this.add.existing(this.conveyor);
-    this.machine=spitMachine(this,390,390);this.workers=factorySides(this);
-    this.exitGraphic = this.add.graphics();
+    this.machine=spitMachine(this,390,510*v).setScale(1,v);this.workers=factorySides(this);
+    this.exitGraphic = this.add.graphics().setScale(1,v);
     this.drawExits();
-    this.drawDiverter();
+    this.drawDiverter(v);
     for (let i = 0; i < 3; i++) {
-      const btn = new SortButton(this, 140 + i * 250, 1510, 210, 220, this.laneNames[i], () => this.choose(i));
+      const btn = new SortButton(this, 140 + i * 250, this.scale.height-175, 210, 190, this.laneNames[i], () => this.choose(i));
       this.lanes.push(btn);
     }
     this.ballGraphic = this.add.graphics().setDepth(5);
-    this.hint = text(this, 390, 1375, 'Tap the matching color', 20, '#77746d', 'normal');
+    this.hint = text(this, 390, this.scale.height-238, 'Tap the matching color', 20, '#77746d', 'normal');
     this.chuteFlash=this.add.graphics();
     const keys: [
       string,
@@ -212,11 +214,11 @@ export class GameScene extends Phaser.Scene {
       this.exitGraphic.lineStyle(5,0xffffff,.72);for(let y=1080;y<1270;y+=56){const t=(y-1010)/340,cx=topX+(x-topX)*t;this.exitGraphic.beginPath();this.exitGraphic.arc(cx,y,7,Math.PI*.15,Math.PI*.85,false);this.exitGraphic.strokePath();}
     }
   }
-  private drawDiverter(): void {
-    const g = this.add.graphics();
+  private drawDiverter(v:number): void {
+    const g = this.add.graphics().setScale(1,v);
     g.fillStyle(0xd8d1c6,1);g.fillRoundedRect(340,975,100,50,12);g.lineStyle(3,0xb9b2a5,1);g.strokeRoundedRect(340,975,100,50,12);
     // Flipper drawn around its pivot so it swings in place toward the chosen chute.
-    const f = this.add.graphics().setPosition(390, 989);
+    const f = this.add.graphics().setPosition(390, 989*v).setScale(1,v);
     f.fillStyle(0xe9e5dc,1);f.fillPoints([{x:-16,y:-3},{x:16,y:-3},{x:0,y:51}],true);f.lineStyle(2,0xb9b2a5,1);f.strokePoints([{x:-16,y:-3},{x:16,y:-3},{x:0,y:51}],true);
     f.fillStyle(0xb9b2a5,1);f.fillCircle(0,0,8);f.setName('flipper');
   }
@@ -224,7 +226,7 @@ export class GameScene extends Phaser.Scene {
   update(_time: number, delta: number): void {
     if (this.stateScene !== 'game')
       return;
-    if(this.def){const left=this.def.timeLimitSec?Math.max(0,this.def.timeLimitSec-this.elapsed/1000):null;this.goalProgressText?.setText(`${this.goalCurrent} / ${this.def.target}${left!==null?`   ⏱ ${Math.ceil(left)}`:''}`);this.goalProgressText?.setColor(left!==null&&left<=5?'#d44b5c':'#59465b');if(left!==null&&left<=5&&!this.timerUrgent){this.timerUrgent=true;this.tweens.add({targets:this.goalProgressText,scale:1.12,duration:210,yoyo:true,repeat:-1,ease:'Sine.InOut'});}this.goalProgressBar?.clear();this.goalProgressBar?.fillStyle(0xffffff,.92);this.goalProgressBar?.fillRoundedRect(240,292,300,15,8);this.goalProgressBar?.fillStyle(0xff8fab,1);this.goalProgressBar?.fillRoundedRect(243,295,294*Math.min(1,this.goalCurrent/this.def.target),9,5);}
+    if(this.def){const left=this.def.timeLimitSec?Math.max(0,this.def.timeLimitSec-this.elapsed/1000):null;this.goalProgressText?.setText(`${this.goalCurrent} / ${this.def.target}${left!==null?`   ⏱ ${Math.ceil(left)}`:''}`);this.goalProgressText?.setColor(left!==null&&left<=5?'#d44b5c':'#59465b');if(left!==null&&left<=5&&!this.timerUrgent){this.timerUrgent=true;this.tweens.add({targets:this.goalProgressText,scale:1.12,duration:210,yoyo:true,repeat:-1,ease:'Sine.InOut'});}this.goalProgressBar?.clear();this.goalProgressBar?.fillStyle(0xffffff,.92);this.goalProgressBar?.fillRoundedRect(160,270,460,18,9);this.goalProgressBar?.fillStyle(0xff8fab,1);this.goalProgressBar?.fillRoundedRect(164,274,452*Math.min(1,this.goalCurrent/this.def.target),10,5);}
     if(this.def?.timeLimitSec&&this.elapsed/1000>this.def.timeLimitSec){this.resolve(false);return;}
     this.conveyor.tick(delta, this.difficulty().travelMs);
     this.elapsed += delta;
@@ -238,7 +240,7 @@ export class GameScene extends Phaser.Scene {
       const progress = Math.min(1, (this.elapsed - this.active.start) / this.active.travel);
       this.ballGraphic.clear();
       const wobble=Math.sin(this.elapsed/85);this.ballGraphic.setScale(1+Math.max(0,wobble)*.035,1-Math.max(0,wobble)*.025);
-      ball(this.ballGraphic, this.active.color, 390 + Math.sin(this.elapsed / 110) * 2, 390 + progress * 560, 70,this.skin,this.elapsed/85,progress>.7?'nervous':'happy');
+      ball(this.ballGraphic, this.active.color, 390 + Math.sin(this.elapsed / 110) * 2, 510*this.scale.height/1688 + progress * (510*this.scale.height/1688), 70,this.skin,this.elapsed/85,progress>.7?'nervous':'happy');
       if (progress >= 1) {
         const missedColor=this.active.color;
         this.active = null;
@@ -266,7 +268,7 @@ export class GameScene extends Phaser.Scene {
       spit(this.machine);
       if(this.firstBallAt===null)this.firstBallAt=this.elapsed;
       this.ballGraphic.clear();
-      ball(this.ballGraphic, item.color, 390, 390, 70,this.skin,0);
+      ball(this.ballGraphic, item.color, 390, 510*this.scale.height/1688, 70,this.skin,0);
     }
     this.publish();
   }
@@ -324,8 +326,8 @@ export class GameScene extends Phaser.Scene {
       this.exitGraphic.setAlpha(1);
       this.tweens.add({ targets: this.exitGraphic, alpha: .65, yoyo: true, duration: 120 });
       this.tweens.add({ targets: this.lanes[lane ?? 0], scaleX: .94, scaleY: .88, yoyo: true, duration: 105 });
-      this.toastAt('+1', x, 1190, color);
-      if(this.score.combo>=2)this.toastAt(`x${this.score.combo}`,x,1290,color);
+      this.toastAt('+1', x, 930*this.scale.height/1688, color);
+      if(this.score.combo>=2)this.toastAt(`x${this.score.combo}`,x,955*this.scale.height/1688,color);
       this.particles(x, 1115, color ?? 'mint');
       if(this.score.combo>=3){this.particles(x,1115,color??'mint');}
       if (this.correctCount === 3) {
