@@ -6,26 +6,21 @@ import type { ColorName } from '../systems/DifficultyManager.ts';
 type Data={score:number;best:number;newBest:boolean;previousBest:number;comboTier:Tier|null;band:number;colorsInPool:number;laneColors:ColorName[];travelMs:number;gapMs:number;fx:any;elapsedMs:number;level:number;levelProgress:number;skin:string;unlockedSkins:string[];firstBallAt:number|null};
 export class GameOverScene extends Phaser.Scene {
   constructor(){super('over');}
-  create(d:Data):void{
+  create(d:Data):void {
     floatingShapes(this);
-    const newly=SKINS.find(s=>d.previousBest<s.at&&d.best>=s.at)?.name??null;
+    const newly=SKINS.filter(s=>d.previousBest<s.at&&d.best>=s.at).at(-1)?.name??null;
     const next=SKINS.find(s=>s.at>d.best);
     const over={score:d.score,best:d.best,isNewBest:d.newBest,toBest:Math.max(0,d.best-d.score),nextUnlock:next?{name:next.name,at:next.at,remaining:Math.max(0,next.at-d.best)}:null,newlyUnlocked:newly};
     window.__COLORFACTORY__={getState:()=>Object.freeze({scene:'over',score:d.score,best:d.best,lives:0,combo:0,comboTier:d.comboTier,band:d.band,colorsInPool:d.colorsInPool,laneColors:Object.freeze([...d.laneColors]),ball:null,travelMs:d.travelMs,gapMs:d.gapMs,buttons:Object.freeze([]),level:d.level,levelProgress:d.levelProgress,skin:d.skin,unlockedSkins:Object.freeze(getUnlockedSkins(d.best)),firstBallAt:d.firstBallAt,fx:Object.freeze({...d.fx}),elapsedMs:d.elapsedMs,layout:{hud:{top:0,bottom:240},play:{top:250,bottom:1300},controls:{top:1390,bottom:1620},hint:null},over:Object.freeze(over)})};
-    const bg=this.add.graphics();bg.fillStyle(0x22e6ff,.12);bg.fillCircle(130,300,100);bg.fillStyle(0xff2bd6,.13);bg.fillCircle(650,1200,130);
-    text(this,390,300,'SYSTEM OVERLOAD',48,'#ff2bd6');text(this,390,352,'GAME OVER',22,'#9bb3cd');
-    text(this,390,435,'SCORE',22,'#9bb3cd');text(this,390,520,String(d.score),100,'#ffffff');
-    text(this,390,635,`BEST  ${d.best}`,28,'#39ff88');
-    if(d.newBest){const best=text(this,390,700,'NEW BEST!',56,'#22e6ff');best.setScale(.35);this.tweens.add({targets:best,scale:1,duration:430,ease:'Back.Out',onComplete:()=>this.tweens.add({targets:best,scale:1.08,duration:520,yoyo:true,repeat:-1,ease:'Sine.InOut'})});this.tweens.add({targets:bg,alpha:.5,duration:260,yoyo:true,repeat:2});this.confetti();}
-    else text(this,390,700,`${Math.max(0,d.best-d.score)} TO BEAT YOUR BEST (${d.best})`,23,'#9bb3cd','normal');
-    if(newly){text(this,390,775,`NEW SKIN UNLOCKED: ${newly}!`,23,'#8d7652');const preview=this.add.graphics();ball(preview,'coral',650,775,24,newly,0);}
-    if(next){
-      text(this,390,newly?865:795,`NEXT UNLOCK: ${next.name} IN ${Math.max(0,next.at-d.best)} PTS`,22,'#77746d');
-      const barY=newly?912:842;const bar=this.add.graphics();bar.fillStyle(0x101d32,1);bar.fillRoundedRect(230,barY,320,14,7);bar.lineStyle(2,0x22e6ff,.8);bar.strokeRoundedRect(230,barY,320,14,7);const previous=SKINS.filter(s=>s.at<next.at).at(-1)?.at??0;bar.fillStyle(0x22e6ff,1);bar.fillRoundedRect(233,barY+3,314*Math.min(1,(d.best-previous)/(next.at-previous)),8,4);
-      const preview=this.add.graphics();ball(preview,'coral',590,barY+8,25,next.name,0);preview.setAlpha(.8);
-    } else text(this,390,795,'ALL SKINS UNLOCKED',22,'#77746d');
-    const play=this.add.graphics();play.fillStyle(0x091426,1);play.fillRoundedRect(105,1020,570,132,36);play.lineStyle(5,0x22e6ff,1);play.strokeRoundedRect(105,1020,570,132,36);play.setInteractive(new Phaser.Geom.Rectangle(105,1020,570,132),Phaser.Geom.Rectangle.Contains).on('pointerdown',()=>this.scene.start('game'));text(this,390,1086,'PLAY AGAIN',34,'#eafaff');
-    const menu=this.add.graphics();menu.fillStyle(0x101d32,1);menu.lineStyle(3,0xff2bd6,1);menu.fillRoundedRect(150,1190,480,96,30);menu.strokeRoundedRect(150,1190,480,96,30);menu.setInteractive(new Phaser.Geom.Rectangle(150,1190,480,96),Phaser.Geom.Rectangle.Contains).on('pointerdown',()=>this.scene.start('menu'));text(this,390,1238,'MENU',28,'#eafaff');
+    const title=text(this,390,228,'SYSTEM OVERLOAD',50,'#ff2bd6');title.setStroke('#22e6ff',2);text(this,390,280,'GAME OVER',24,'#b9d5e6');
+    text(this,390,350,'SCORE',22,'#9bb3cd');text(this,390,430,String(d.score),96,'#ffffff');text(this,390,510,`BEST  ${d.best}`,29,'#39ff88');
+    if(d.newBest) text(this,390,570,'NEW BEST!',48,'#22e6ff');else text(this,390,570,`${Math.max(0,d.best-d.score)} TO BEAT YOUR BEST (${d.best})`,22,'#b9d5e6','normal');
+    const panel=this.add.graphics();panel.fillStyle(0x081426,.97);panel.fillRoundedRect(90,635,600,342,28);panel.lineStyle(3,0x22e6ff,.9);panel.strokeRoundedRect(90,635,600,342,28);panel.lineStyle(1,0xff2bd6,.6);panel.strokeRoundedRect(97,642,586,328,22);
+    if(newly){const prev=this.add.graphics();ball(prev,'coral',160,735,38,newly,0);text(this,420,720,'NEW SKIN UNLOCKED',26,'#ffc23a');text(this,420,765,newly.toUpperCase(),28,'#ffffff');}
+    if(next){const rowY=newly?820:720;const preview=this.add.graphics();ball(preview,'coral',155,rowY,31,next.name,0);const label=text(this,425,rowY,`NEXT UNLOCK: ${next.name} · ${Math.max(0,next.at-d.best)} PTS`,24,'#22e6ff');label.setScale(.82);const barY=rowY+38;const bar=this.add.graphics();bar.fillStyle(0x101d32,1);bar.fillRoundedRect(205,barY,390,18,9);bar.lineStyle(2,0x22e6ff,.9);bar.strokeRoundedRect(205,barY,390,18,9);const previous=SKINS.filter(s=>s.at<next.at).at(-1)?.at??0;const progress=Math.max(.02,Math.min(1,(d.best-previous)/(next.at-previous)));bar.fillStyle(0x22e6ff,1);bar.fillRoundedRect(209,barY+4,382*progress,10,5);}
+    else text(this,390,740,'ALL SKINS UNLOCKED',25,'#22e6ff');
+    const stats=this.add.graphics();stats.fillStyle(0x101d32,.8);stats.fillRoundedRect(175,895,430,58,15);text(this,390,925,`LEVEL ${d.level}   ·   ${d.score} POINTS`,20,'#d9f5ff');
+    const play=this.add.graphics();play.fillStyle(0x091426,1);play.fillRoundedRect(105,1050,570,125,36);play.lineStyle(5,0x22e6ff,1);play.strokeRoundedRect(105,1050,570,125,36);play.setInteractive(new Phaser.Geom.Rectangle(105,1050,570,125),Phaser.Geom.Rectangle.Contains).on('pointerdown',()=>this.scene.start('game'));text(this,390,1114,'PLAY AGAIN',34,'#ffffff');
+    const menu=this.add.graphics();menu.fillStyle(0x101d32,1);menu.lineStyle(3,0xff2bd6,1);menu.fillRoundedRect(150,1210,480,92,30);menu.strokeRoundedRect(150,1210,480,92,30);menu.setInteractive(new Phaser.Geom.Rectangle(150,1210,480,92),Phaser.Geom.Rectangle.Contains).on('pointerdown',()=>this.scene.start('menu'));text(this,390,1256,'MENU',28,'#ffffff');
   }
-  private confetti():void{const g=this.add.graphics();const colors=[0xff2bd6,0x22e6ff,0x39ff88,0xffc23a,0x8a5cff];for(let i=0;i<32;i++){g.fillStyle(colors[i%colors.length],1);g.fillRect(90+(i*73)%600,200+(i*97)%700,9,14);}this.tweens.add({targets:g,alpha:0,y:100,duration:1000,onComplete:()=>g.destroy()});}
 }
