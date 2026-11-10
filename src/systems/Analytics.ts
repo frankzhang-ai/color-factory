@@ -1,3 +1,4 @@
+import { STORAGE_PREFIX } from './Storage.ts';
 declare global {
   interface Window {
     goatcounter?: { count: (event: { path: string; title: string; event: true }) => void };
@@ -35,22 +36,22 @@ export function trackWhenReady(name: string, title?: string): void {
 export function trackReturns(now = new Date()): void {
   const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   try {
-    const first = localStorage.getItem('colorfactory.first');
+    const first = localStorage.getItem(STORAGE_PREFIX + 'first');
     if (!first) {
-      localStorage.setItem('colorfactory.first', date);
+      localStorage.setItem(STORAGE_PREFIX + 'first', date);
       return;
     }
     if (date <= first) return;
-    if (localStorage.getItem('colorfactory.lastReturn') !== date) {
+    if (localStorage.getItem(STORAGE_PREFIX + 'lastReturn') !== date) {
       trackWhenReady('cf-return-d1');
-      localStorage.setItem('colorfactory.lastReturn', date);
+      localStorage.setItem(STORAGE_PREFIX + 'lastReturn', date);
     }
     const firstDate = new Date(`${first}T00:00:00`);
     const today = new Date(`${date}T00:00:00`);
     const days = Math.round((today.getTime() - firstDate.getTime()) / 86400000);
-    if (days === 1 && localStorage.getItem('colorfactory.lastDay1') !== date) {
+    if (days === 1 && localStorage.getItem(STORAGE_PREFIX + 'lastDay1') !== date) {
       trackWhenReady('cf-return-day1');
-      localStorage.setItem('colorfactory.lastDay1', date);
+      localStorage.setItem(STORAGE_PREFIX + 'lastDay1', date);
     }
   } catch {}
 }
