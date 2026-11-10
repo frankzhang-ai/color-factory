@@ -62,3 +62,7 @@ export function trackGameStart(): void {
   trackWhenReady('cf-game-start');
   if (sessionRuns === 2) trackWhenReady('cf-second-game');
 }
+
+export function trackLevelStart(n: number): void { trackWhenReady('cf-level-start-' + n); }
+export function trackLevelClear(n: number): void { trackWhenReady('cf-level-clear-' + n); }
+export function trackDailyPlay(): void { trackWhenReady('cf-daily-play'); }

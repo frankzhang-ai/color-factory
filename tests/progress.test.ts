@@ -1,0 +1,3 @@
+import assert from 'node:assert/strict';import {getStars,recordResult,totalStars,highestUnlocked,nodeState} from '../src/systems/Progress.ts';import {getUnlockedSkins} from '../src/systems/Storage.ts';
+const m=new Map<string,string>();Object.defineProperty(globalThis,'localStorage',{configurable:true,value:{getItem:(k:string)=>m.get(k)??null,setItem:(k:string,v:string)=>m.set(k,v)}});
+assert.equal(highestUnlocked(),1);assert.equal(nodeState(1),'next');recordResult(1,2);assert.equal(highestUnlocked(),2);recordResult(1,1);assert.equal(getStars(1),2);recordResult(2,3);assert.equal(totalStars(),5);assert.ok(!getUnlockedSkins().includes('Strawberry'));recordResult(3,1);assert.ok(getUnlockedSkins().includes('Strawberry'));

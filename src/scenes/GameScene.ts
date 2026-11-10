@@ -352,7 +352,7 @@ export class GameScene extends Phaser.Scene {
         gapMs: finalDifficulty.gapMs,
         fx: { lastCorrectAt: this.lastCorrectAt, correctCount: this.correctCount, wrongCount: this.wrongCount, missCount: this.missCount, scorePopCount: this.scorePopCount, particleBursts: this.particleBursts, lastSound: this.lastSound, soundCount: this.soundCount },
         elapsedMs: this.elapsed,
-        level:Math.floor(this.score.score/5)+1,levelProgress:(this.score.score%5)/5,skin:this.skin,unlockedSkins:getUnlockedSkins(this.best),firstBallAt:this.firstBallAt,
+        level:Math.floor(this.score.score/5)+1,levelProgress:(this.score.score%5)/5,skin:this.skin,unlockedSkins:getUnlockedSkins(),firstBallAt:this.firstBallAt,
       });
     }
   }

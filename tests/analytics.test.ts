@@ -24,12 +24,12 @@ Object.defineProperty(globalThis, 'window', {
 });
 
 trackReturns(new Date(2026, 0, 10));
-assert.equal(values.get('cfcute.first'), '2026-01-10');
+assert.equal(values.get('cflv.first'), '2026-01-10');
 assert.deepEqual(events, []);
 trackReturns(new Date(2026, 0, 11));
 assert.deepEqual(events, ['cf-return-d1', 'cf-return-day1']);
-assert.equal(values.get('cfcute.lastReturn'), '2026-01-11');
-assert.equal(values.get('cfcute.lastDay1'), '2026-01-11');
+assert.equal(values.get('cflv.lastReturn'), '2026-01-11');
+assert.equal(values.get('cflv.lastDay1'), '2026-01-11');
 trackReturns(new Date(2026, 0, 11));
 assert.equal(events.length, 2);
 trackReturns(new Date(2026, 0, 12));
