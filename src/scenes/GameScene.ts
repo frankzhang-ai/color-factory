@@ -396,7 +396,7 @@ export class GameScene extends Phaser.Scene {
     this.tierShown=tier;this.tierBursts++;
     this.tweens.add({targets:this.hint,alpha:0,duration:120});
     const size=tier==='FANTASTIC'?88:tier==='PERFECT'?78:tier==='GREAT'?68:58;
-    const tierY=294;
+    const tierY=312;
     const targets: Phaser.GameObjects.Text[] = tier==='FANTASTIC'
       ? [...tier].map((letter,index)=>this.add.text(390-261+index*58,tierY,letter,{fontFamily:'system-ui,sans-serif',fontSize:`${size}px`,fontStyle:'bold',color:'#ffffff',stroke:`#${[0xff3d6e,0xffc23a,0x39ff88,0x2fb6ff,0xb26bff][index%5].toString(16)}`,strokeThickness:8,shadow:{offsetX:0,offsetY:0,color:'#ffffff',blur:16,fill:true}}).setOrigin(.5).setScale(.05))
       : [this.add.text(386,tierY,tier,{fontFamily:'system-ui,sans-serif',fontSize:`${size}px`,fontStyle:'bold',color:'#ffffff',stroke:`#${HEX[color].toString(16).padStart(6,'0')}`,strokeThickness:8,shadow:{offsetX:0,offsetY:0,color:'#22e6ff',blur:16,fill:true},align:'center'}).setOrigin(.5).setScale(.05),this.add.text(394,tierY,tier,{fontFamily:'system-ui,sans-serif',fontSize:`${size}px`,fontStyle:'bold',color:'#ff2bd6',align:'center'}).setOrigin(.5).setScale(.05).setAlpha(.75)];
