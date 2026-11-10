@@ -25,7 +25,7 @@ else {
 export function ball(g: Phaser.GameObjects.Graphics, color: ColorName, x: number, y: number, r: number, skin = 'Classic', roll = 0, mood: 'happy' | 'nervous' | 'sad' | 'dizzy' = 'happy'): void {
   // Ground shadow, layered radial approximation, rim, and soft specular highlight.
   g.fillStyle(0x252a31, .18); g.fillEllipse(x + r * .12, y + r * .78, r * 1.65, r * .38);
-  const base = skin === 'Rainbow' ? [0xff8fab,0xffbd8b,0xffdd74,0x78d5ad,0x76c8f4][Math.floor((roll+10)%5)] : HEX[color];
+  const base = skin === 'Galaxy' ? 0x49356f : skin === 'Sunny' ? 0xffd45e : skin === 'Rainbow' ? [0xff8fab,0xffbd8b,0xffdd74,0x78d5ad,0x76c8f4][Math.floor((roll+10)%5)] : HEX[color];
   g.fillStyle(base, 1); g.fillCircle(x, y, r);
   g.fillStyle(0xffffff, .20); g.fillCircle(x - r*.18, y - r*.19, r*.77);
   g.fillStyle(base, .20); g.fillCircle(x + r*.2, y + r*.23, r*.68);
@@ -34,6 +34,8 @@ export function ball(g: Phaser.GameObjects.Graphics, color: ColorName, x: number
   if (skin === 'Bunny') { g.fillStyle(base,1);g.fillEllipse(x-r*.43,y-r*.83,r*.32,r*.66);g.fillEllipse(x+r*.43,y-r*.83,r*.32,r*.66);g.fillStyle(0xffd2df,1);g.fillEllipse(x-r*.43,y-r*.83,r*.14,r*.42);g.fillEllipse(x+r*.43,y-r*.83,r*.14,r*.42); }
   if (skin === 'Star') { g.fillStyle(0xfff1a8,1);g.fillPoints([{x,y:y-r*1.16},{x:x+r*.16,y:y-r*.9},{x:x+r*.46,y:y-r*.88},{x:x+r*.25,y:y-r*.65},{x:x+r*.33,y:y-r*.38},{x,y:y-r*.54},{x:x-r*.33,y:y-r*.38},{x:x-r*.25,y:y-r*.65},{x:x-r*.46,y:y-r*.88},{x:x-r*.16,y:y-r*.9}],true); }
   if (skin === 'Rainbow') { for(let i=0;i<4;i++){g.lineStyle(r*.12,[0xff8fab,0xffd45e,0x70cda9,0x75c9f5][i],.85);g.beginPath();g.arc(x,y,r*(.72+i*.06),Math.PI*.15,Math.PI*.85);g.strokePath();} }
+  if (skin === 'Sunny') { g.lineStyle(Math.max(2,r*.07),0xffad32,.9);for(let i=0;i<12;i++){const a=i*Math.PI/6;g.lineBetween(x+Math.cos(a)*r*1.03,y+Math.sin(a)*r*1.03,x+Math.cos(a)*r*1.22,y+Math.sin(a)*r*1.22);}g.fillStyle(0x59465b,1);g.fillRoundedRect(x-r*.64,y-r*.26,r*.56,r*.29,r*.1);g.fillRoundedRect(x+r*.08,y-r*.26,r*.56,r*.29,r*.1);g.lineStyle(r*.07,0x59465b,1);g.lineBetween(x-r*.08,y-r*.13,x+r*.08,y-r*.13); }
+  if (skin === 'Galaxy') { for(let i=0;i<5;i++){const a=i*2.4+roll*.12,sx=x+Math.cos(a)*r*.67,sy=y+Math.sin(a)*r*.66;g.fillStyle(0xffffff,.95);g.fillCircle(sx,sy,Math.max(1,r*.045));}g.fillStyle(0xb993f5,.8);g.fillCircle(x+r*.48,y-r*.48,r*.14); }
   // Rotating short meridian creates a readable rolling cue without hiding the glyph.
   const a=roll; g.lineStyle(r*.035,0xffffff,.45); g.beginPath();g.arc(x,y,r*.79,a,a+Math.PI*.72,false);g.strokePath();
   // Big glossy eyes, blush and a tiny smile make every color a readable little friend.

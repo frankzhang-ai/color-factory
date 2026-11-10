@@ -6,7 +6,7 @@ function makeLevel(id:number):LevelDef {
  const t=Math.floor((id-1)/5), slot=(id-1)%5, boss=slot===4;
  const travelBase=Math.max(1200,2400-40*(id-1)), travelMs=boss?Math.round(travelBase*.88):travelBase;
  let goal:GoalType='sort', target=10+3*t, timeLimitSec:number|null=null,lives=3,starRule:'lives'|'time'='lives',parSec:number|null=null;
- if(slot===1){goal='combo';target=6+2*t;} else if(slot===2){goal='streak';target=6+2*t;lives=1;starRule='time';parSec=Math.ceil(target*2.2*travelMs/2400+1);} else if(slot===3){goal='timed';timeLimitSec=Math.ceil(target*(3-.2*t));} else if(boss){goal='timed';target=15+4*t;timeLimitSec=Math.ceil(target*(2.8-.2*t));}
+ if(slot===1){goal='combo';target=6+2*t;} else if(slot===2){goal='streak';target=6+2*t;lives=1;starRule='time';parSec=Math.ceil(target*2.2*travelMs/2400+1);} else if(slot===3){goal='timed';timeLimitSec=Math.ceil(target*(3-.2*t));starRule='time';parSec=Math.ceil(timeLimitSec*.8);} else if(boss){goal='timed';target=15+4*t;timeLimitSec=Math.ceil(target*(2.8-.2*t));starRule='time';parSec=Math.ceil(timeLimitSec*.8);}
  const title=goal==='sort'?`Sort ${target} balls`:goal==='timed'?`Sort ${target} in ${timeLimitSec}s`:goal==='combo'?`Reach a ${target} combo`:`${target} in a row — no mistakes!`;
  return {id,goal,target,timeLimitSec,boss,lives,travelMs,gapMs:Math.max(280,430-5*(id-1)),colorsInPool:id<=10?3:id<=20?4:5,title,starRule,parSec};
 }

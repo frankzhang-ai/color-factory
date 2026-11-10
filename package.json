@@ -8,6 +8,7 @@
     "build": "tsc --noEmit && vite build",
     "build:preview": "tsc --noEmit && vite build --mode preview",
     "build:cute": "tsc --noEmit && vite build --mode cute",
+    "build:levels": "tsc --noEmit && vite build --mode levels",
     "preview": "vite preview",
     "test": "node --experimental-strip-types --test tests/*.test.ts"
   },

@@ -10,8 +10,14 @@ import { getBest, getSound, saveBest, saveSound, getSkin, getUnlockedSkins, SKIN
 import { AudioSystem } from '../systems/Audio.ts';
 import { pauseIcon } from './ui.ts';
 import { scoreBand, track, trackGameStart } from '../systems/Analytics.ts';
+import { getLevel, goalProgress, starsFor, soCloseText, type LevelDef, type RunStats } from '../systems/Levels.ts';
+import { dailyChallenge, dailyRandom, recordDailyPlay, currentStreak } from '../systems/Daily.ts';
+import { localDateKey, now } from '../systems/Clock.ts';
+import { totalStars } from '../systems/Progress.ts';
+import { trackDailyPlay, trackLevelClear, trackLevelStart } from '../systems/Analytics.ts';
+import { COLORS as COLOR_LIST } from '../systems/DifficultyManager.ts';
 type State = {
-  scene: 'boot' | 'menu' | 'game' | 'paused' | 'over';
+  scene: 'boot' | 'menu' | 'game' | 'paused' | 'over' | 'goal' | 'win' | 'fail' | 'daily-end';
   score: number;
   best: number;
   lives: number;
@@ -41,10 +47,12 @@ declare global {
   interface Window {
     __COLORFACTORY__?: {
       getState: () => Readonly<State>;
+      scrollMapTo?: (id:number)=>void;
     };
   }
 }
 export class GameScene extends Phaser.Scene {
+  runMode:'endless'|'level'|'daily'='endless'; levelId=1; dateKey=''; private def?:LevelDef; private goalCurrent=0; private bestCombo=0; private goalProgressText?:Phaser.GameObjects.Text; private goalProgressBar?:Phaser.GameObjects.Graphics; private timerUrgent=false; private runResultSent=false; private activeTravel=2400;
   score = new ScoreManager();
   spawn!: SpawnManager;
   audio = new AudioSystem(getSound());
@@ -85,11 +93,14 @@ export class GameScene extends Phaser.Scene {
   constructor() {
     super('game');
   }
-  create(): void {
+  create(data:{mode?:'endless'|'level'|'daily';id?:number;dateKey?:string}={}): void {
+    this.runMode=data.mode??'endless';this.levelId=data.id??1;this.dateKey=data.dateKey??localDateKey();this.runResultSent=false;this.timerUrgent=false;this.bestCombo=0;this.goalCurrent=0;
+    if(this.runMode==='level')this.def=getLevel(this.levelId)!;else if(this.runMode==='daily'){const d=dailyChallenge(this.dateKey);this.def={...d,id:0,boss:false,starRule:'lives',parSec:null};}else this.def=undefined;
     cuteBackdrop(this,true);
     trackGameStart();
     this.score = new ScoreManager();
-    this.spawn = new SpawnManager();
+    if(this.def)this.score.lives=this.def.lives;
+    this.spawn = new SpawnManager(this.def?COLOR_LIST.slice(0,this.def.colorsInPool):undefined,this.runMode==='daily'?dailyRandom(this.dateKey):Math.random);
     this.laneNames = [...this.spawn.lanes];
     this.lanes = [];
     this.active = null;
@@ -107,12 +118,14 @@ export class GameScene extends Phaser.Scene {
     this.audio = new AudioSystem(getSound());
     this.stateScene = 'game';
     this.runStartedAt = this.time.now;
-    this.add.text(390,65,'0',{fontFamily:'system-ui,sans-serif',fontSize:'84px',fontStyle:'bold',color:'#353431',letterSpacing:5,shadow:{offsetX:0,offsetY:3,color:'#8e8679',blur:5,fill:true}}).setOrigin(.5).setName('score');
-    this.drawLives(3);
-    text(this, 390, 155, 'COMBO  0', 22, '#77746d').setName('combo');
+    this.add.text(390,65,this.runMode==='endless'?'0':`${this.runMode==='daily'?'DAILY':'LEVEL '+this.levelId}`,{fontFamily:'system-ui,sans-serif',fontSize:this.runMode==='endless'?'84px':'37px',fontStyle:'bold',color:'#353431',letterSpacing:2}).setOrigin(.5).setName('score');
+    this.drawLives(this.def?.lives??3);
+    text(this, 390, 155, this.def?this.def.title:'COMBO  0', this.def?17:22, '#77746d').setName('combo');
+    if(this.def){this.goalProgressText=text(this,390,266,`0 / ${this.def.target}`,27,'#59465b');this.goalProgressBar=this.add.graphics();}
     const comboPill=this.add.graphics();comboPill.fillStyle(0xffffff,.72);comboPill.fillRoundedRect(302,132,176,46,23);comboPill.lineStyle(2,0xe4ded1,.9);comboPill.strokeRoundedRect(302,132,176,46,23);comboPill.setDepth(-1);
     const levelPill=this.add.graphics();levelPill.fillStyle(0xff8fab,1);levelPill.fillRoundedRect(332,195,116,34,17);this.levelText=text(this,390,212,'LEVEL 1',17,'#ffffff');
     this.levelBar=this.add.graphics();this.drawLevelBar();
+    if(this.def){levelPill.setVisible(false);this.levelText.setVisible(false);this.levelBar.setVisible(false);}
     const pause = this.add.graphics();
     pause.fillStyle(0x353431, 0.08);
     pause.fillCircle(710, 92, 42);
@@ -154,6 +167,7 @@ export class GameScene extends Phaser.Scene {
       this.events.off('audio-unlock', unlock);
     });
     this.publish();
+    if(this.runMode==='level')trackLevelStart(this.levelId);if(this.runMode==='daily')trackDailyPlay();
   }
   private drawLives(lives: number): void {
     const g = this.add.graphics();
@@ -210,9 +224,11 @@ export class GameScene extends Phaser.Scene {
   update(_time: number, delta: number): void {
     if (this.stateScene !== 'game')
       return;
-    this.conveyor.tick(delta, getDifficulty(this.score.score).travelMs);
+    if(this.def){const left=this.def.timeLimitSec?Math.max(0,this.def.timeLimitSec-this.elapsed/1000):null;this.goalProgressText?.setText(`${this.goalCurrent} / ${this.def.target}${left!==null?`   ⏱ ${Math.ceil(left)}`:''}`);this.goalProgressText?.setColor(left!==null&&left<=5?'#d44b5c':'#59465b');if(left!==null&&left<=5&&!this.timerUrgent){this.timerUrgent=true;this.tweens.add({targets:this.goalProgressText,scale:1.12,duration:210,yoyo:true,repeat:-1,ease:'Sine.InOut'});}this.goalProgressBar?.clear();this.goalProgressBar?.fillStyle(0xffffff,.92);this.goalProgressBar?.fillRoundedRect(240,292,300,15,8);this.goalProgressBar?.fillStyle(0xff8fab,1);this.goalProgressBar?.fillRoundedRect(243,295,294*Math.min(1,this.goalCurrent/this.def.target),9,5);}
+    if(this.def?.timeLimitSec&&this.elapsed/1000>this.def.timeLimitSec){this.resolve(false);return;}
+    this.conveyor.tick(delta, this.difficulty().travelMs);
     this.elapsed += delta;
-    const diff = getDifficulty(this.score.score);
+    const diff = this.difficulty();
     if (diff.band !== this.lastBand) {
       const messages: Record<number, string> = { 2: 'SPEED UP', 3: 'NEW COLOR', 4: 'FASTER FLOW', 5: 'NEW COLOR', 6: 'SPEED UP' };
       this.toast(messages[diff.band] ?? 'SPEED UP');
@@ -233,7 +249,7 @@ export class GameScene extends Phaser.Scene {
       }
     }
     else if (this.elapsed >= this.gap && this.elapsed >= this.lanePauseUntil) {
-      const pool = COLORS.slice(0, diff.colorsInPool) as ColorName[];
+      const pool = COLOR_LIST.slice(0, diff.colorsInPool) as ColorName[];
       const item = this.spawn.next(pool);
       this.ballCount++;
       if (item.newLanes) {
@@ -285,17 +301,18 @@ export class GameScene extends Phaser.Scene {
   }
   private resolve(correct: boolean, color?: ColorName, lane?: number, _wasMiss = false): void {
     const result = this.score.sort(correct);
-    this.obj('score').setText(String(this.score.score));
+    this.obj('score').setText(this.def?`${this.runMode==='daily'?'DAILY':'LEVEL '+this.levelId}`:String(this.score.score));
     this.obj('combo').setText(`COMBO  ${this.score.combo}`);
     this.obj('combo').setStyle({color:correct?'#e98980':'#77746d'});
     this.tweens.add({ targets: this.obj('combo'), scale: 1.14, yoyo: true, duration: 100 });
     this.updateLives(this.score.lives);
-    this.levelText.setText(`LEVEL ${Math.floor(this.score.score/5)+1}`);this.drawLevelBar();
-    if(correct&&this.score.score>0&&this.score.score%5===0){this.levelUps++;this.levelText.setColor('#ffffff');this.levelText.setScale(1);this.tweens.add({targets:this.levelText,scale:1.2,duration:170,yoyo:true,hold:100,ease:'Back.Out'});this.levelBar.setAlpha(.35);this.tweens.add({targets:this.levelBar,alpha:1,duration:300,yoyo:true});this.levelRibbon();this.particles(390,750,'yellow');}
+    if(!this.def){this.levelText.setText(`LEVEL ${Math.floor(this.score.score/5)+1}`);this.drawLevelBar();}
+    if(!this.def&&correct&&this.score.score>0&&this.score.score%5===0){this.levelUps++;this.levelText.setColor('#ffffff');this.levelText.setScale(1);this.tweens.add({targets:this.levelText,scale:1.2,duration:170,yoyo:true,hold:100,ease:'Back.Out'});this.levelBar.setAlpha(.35);this.tweens.add({targets:this.levelBar,alpha:1,duration:300,yoyo:true});this.levelRibbon();this.particles(390,750,'yellow');}
     if(correct&&this.score.combo>=3||correct&&this.score.score>0&&this.score.score%5===0)this.workers.forEach(w=>cheerWorker(this,w));
     this.vibrate(correct?10:30,correct);
     if (correct) {
       this.correctCount++;
+      this.bestCombo=Math.max(this.bestCombo,this.score.combo);
       this.lastCorrectAt = this.elapsed;
       this.playSound('correct');
       this.lastPitch=this.audio.lastPitch;
@@ -330,10 +347,10 @@ export class GameScene extends Phaser.Scene {
       else
         this.toast('TOO LATE');
     }
-    this.gap = this.elapsed + getDifficulty(this.score.score).gapMs;
+    this.gap = this.elapsed + this.difficulty().gapMs;
     if (result.tier)
       this.showTier(result.tier, color ?? this.laneNames[lane ?? 0]);
-    if (result.gameOver) {
+    if (result.gameOver && !this.def) {
       track('cf-game-over', `score ${scoreBand(this.score.score)}`);
       this.active = null;
       this.stateScene = 'over';
@@ -355,7 +372,13 @@ export class GameScene extends Phaser.Scene {
         level:Math.floor(this.score.score/5)+1,levelProgress:(this.score.score%5)/5,skin:this.skin,unlockedSkins:getUnlockedSkins(),firstBallAt:this.firstBallAt,
       });
     }
+    if(this.def&&!this.runResultSent){
+      const stats:RunStats={correct:this.correctCount,combo:this.score.combo,bestCombo:this.bestCombo,streak:this.score.combo,wrong:this.wrongCount,missed:this.missCount,elapsedSec:this.elapsed/1000,livesLeft:this.score.lives};
+      const progress=goalProgress(this.def,stats);this.goalCurrent=progress.current;
+      if(progress.done||progress.failed){this.runResultSent=true;this.active=null;this.stateScene='over';this.publish();const won=progress.done;const stars=won?(this.runMode==='level'?starsFor(this.def,{livesLeft:this.score.lives,elapsedSec:this.elapsed/1000}):this.score.lives):0;if(won&&this.runMode==='level')trackLevelClear(this.levelId);if(!won)this.toast(progress.failReason==='time'?'TIME!':'OOPS');const outcome={mode:this.runMode,id:this.levelId,dateKey:this.dateKey,won,stars,progress:progress.current,target:progress.target,soClose:soCloseText(this.def,progress),elapsedMs:this.elapsed,score:this.score.score,lives:this.score.lives,totalStars:totalStars(),def:this.def};this.time.delayedCall(400,()=>this.scene.start('level-end',outcome));return;}
+    }
   }
+  private difficulty():ReturnType<typeof getDifficulty>{const d=getDifficulty(this.score.score);return this.def?{...d,travelMs:this.def.travelMs,gapMs:this.def.gapMs,colorsInPool:this.def.colorsInPool,band:1}:d;}
   private obj(name: string): Phaser.GameObjects.Text {
     return this.children.getByName(name) as Phaser.GameObjects.Text;
   }
@@ -416,11 +439,11 @@ export class GameScene extends Phaser.Scene {
     this.scene.pause();
   }
   private publish(): void {
-    const difficulty = getDifficulty(this.score.score);
+    const difficulty = this.difficulty();
     const canvas = this.game.canvas.getBoundingClientRect();
     const buttons = this.lanes.map((button) => ({
       x: canvas.left + button.x / 780 * canvas.width,
-      y: canvas.top + button.y / 1688 * canvas.height,
+      y: canvas.top + button.y / this.scale.height * canvas.height,
     }));
     const state: State = {
       scene: this.stateScene,
@@ -448,6 +471,8 @@ export class GameScene extends Phaser.Scene {
     window.__COLORFACTORY__ = {
       getState: () => Object.freeze({
         ...state,
+        mode:this.runMode,levelId:this.runMode==='endless'?null:this.levelId,goal:this.def?{type:this.def.goal,target:this.def.target,current:this.goalCurrent,remaining:Math.max(0,this.def.target-this.goalCurrent),timeLeftSec:this.def.timeLimitSec?Math.max(0,this.def.timeLimitSec-this.elapsed/1000):null,title:this.def.title}:null,
+        totalStars:totalStars(),streak:currentStreak(localDateKey()),dateKey:this.dateKey,dailySeed:this.runMode==='daily'?dailyChallenge(this.dateKey).seed:null,
         laneColors: Object.freeze([...state.laneColors]),
         buttons: Object.freeze(state.buttons.map((point) => Object.freeze({ ...point }))),
       }),
@@ -499,7 +524,7 @@ export class PauseScene extends Phaser.Scene {
     else if (index === 1) {
       this.scene.stop();
       this.scene.stop('game');
-      this.scene.start('game');
+      this.scene.start('game',{mode:this.gameScene.runMode,id:this.gameScene.levelId,dateKey:this.gameScene.dateKey});
     }
     else {
       this.scene.stop();

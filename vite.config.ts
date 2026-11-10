@@ -37,11 +37,12 @@ function precachePlugin(outDir: string, cachePrefix: string, manifestName?: stri
 export default defineConfig(({ mode }) => {
   const preview = mode === 'preview';
   const cute = mode === 'cute';
-  const outDir = cute ? 'dist-cute' : preview ? 'dist-preview' : 'dist';
-  const cachePrefix = cute ? 'cfcute-' : preview ? 'cfpreview-' : 'colorfactory-';
+  const levels = mode === 'levels';
+  const outDir = levels ? 'dist-levels' : cute ? 'dist-cute' : preview ? 'dist-preview' : 'dist';
+  const cachePrefix = levels ? 'cflv-' : cute ? 'cfcute-' : preview ? 'cfpreview-' : 'colorfactory-';
   return {
-  base: cute ? '/color-factory/preview-cute/' : preview ? '/color-factory/preview/' : './',
-  plugins: [precachePlugin(outDir, cachePrefix, cute ? 'Color Factory (Cute Preview)' : preview ? 'Color Factory (Preview)' : undefined)],
+  base: levels ? '/color-factory/preview-levels/' : cute ? '/color-factory/preview-cute/' : preview ? '/color-factory/preview/' : './',
+  plugins: [precachePlugin(outDir, cachePrefix, levels ? 'Color Factory (Levels Preview)' : cute ? 'Color Factory (Cute Preview)' : preview ? 'Color Factory (Preview)' : undefined)],
   build: {
     outDir,
     chunkSizeWarningLimit: 2000,

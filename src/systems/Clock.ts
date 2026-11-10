@@ -6,6 +6,7 @@ export function now(): number {
   const hooked = (globalThis as typeof globalThis & { __CF_NOW__?: unknown }).__CF_NOW__;
   return typeof hooked === 'number' && Number.isFinite(hooked) ? hooked : Date.now();
 }
+export function msUntilLocalMidnight(ms = now()): number { const d=new Date(ms); d.setHours(24,0,0,0); return d.getTime()-ms; }
 export function localDateKey(ms = now()): string {
   const d = new Date(ms);
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;

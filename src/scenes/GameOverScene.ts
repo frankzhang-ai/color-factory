@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { text,ball } from '../objects/draw.ts';
 import { cuteBackdrop } from '../objects/cuteDecor.ts';
 import { getUnlockedSkins,SKINS } from '../systems/Storage.ts';
+import { totalStars } from '../systems/Progress.ts';
 import type { Tier } from '../systems/ScoreManager.ts';
 import type { ColorName } from '../systems/DifficultyManager.ts';
 type Data={score:number;best:number;newBest:boolean;previousBest:number;comboTier:Tier|null;band:number;colorsInPool:number;laneColors:ColorName[];travelMs:number;gapMs:number;fx:any;elapsedMs:number;level:number;levelProgress:number;skin:string;unlockedSkins:string[];firstBallAt:number|null};
@@ -9,9 +10,10 @@ export class GameOverScene extends Phaser.Scene {
   constructor(){super('over');}
   create(d:Data):void{
     cuteBackdrop(this);
-    const newly=[...SKINS].reverse().find(s=>s.at>0&&d.previousBest<s.at&&d.best>=s.at)?.name??null;
-    const next=SKINS.find(s=>s.at>d.best);
-    const over={score:d.score,best:d.best,isNewBest:d.newBest,toBest:Math.max(0,d.best-d.score),nextUnlock:next?{name:next.name,at:next.at,remaining:Math.max(0,next.at-d.best)}:null,newlyUnlocked:newly};
+    const stars=totalStars();
+    const newly=null;
+    const next=SKINS.filter(s=>s.at>0).find(s=>s.at>stars);
+    const over={score:d.score,best:d.best,isNewBest:d.newBest,toBest:Math.max(0,d.best-d.score),nextUnlock:next?{name:next.name,at:next.at,remaining:Math.max(0,next.at-stars)}:null,newlyUnlocked:newly};
     window.__COLORFACTORY__={getState:()=>Object.freeze({scene:'over',score:d.score,best:d.best,lives:0,combo:0,comboTier:d.comboTier,band:d.band,colorsInPool:d.colorsInPool,laneColors:Object.freeze([...d.laneColors]),ball:null,travelMs:d.travelMs,gapMs:d.gapMs,buttons:Object.freeze([]),level:d.level,levelProgress:d.levelProgress,skin:d.skin,unlockedSkins:Object.freeze(getUnlockedSkins()),firstBallAt:d.firstBallAt,fx:Object.freeze({...d.fx}),elapsedMs:d.elapsedMs,layout:{hud:{top:0,bottom:240},play:{top:250,bottom:1300},controls:{top:1390,bottom:1620},hint:null},over:Object.freeze(over)})};
     const bg=this.add.graphics();bg.fillStyle(0xffffff,.9);bg.fillRoundedRect(100,250,580,410,42);bg.lineStyle(5,0xffdce6,1);bg.strokeRoundedRect(100,250,580,410,42);
     text(this,390,315,'GREAT RUN!',50,'#59465b');
@@ -26,8 +28,8 @@ export class GameOverScene extends Phaser.Scene {
     if(!d.newBest) text(this,390,710,`${Math.max(0,d.best-d.score)} TO BEAT YOUR BEST (${d.best})`,23,'#77746d','normal');
     if(newly){text(this,390,850,`NEW SKIN UNLOCKED: ${newly}!`,23,'#8d7652');const preview=this.add.graphics();ball(preview,'coral',655,850,26,newly,0);}
     if(next){
-      text(this,390,newly?930:890,`NEXT UNLOCK: ${next.name} IN ${Math.max(0,next.at-d.best)} PTS`,22,'#77746d');
-      const barY=newly?976:936;const bar=this.add.graphics();bar.fillStyle(0xffffff,.9);bar.fillRoundedRect(210,barY-10,360,38,19);bar.lineStyle(3,0xf4e5d2,1);bar.strokeRoundedRect(210,barY-10,360,38,19);bar.fillStyle(0xa8d8ff,1);bar.fillRoundedRect(218,barY-2,344*Math.min(1,d.best/next.at),22,11);
+      text(this,390,newly?930:890,`NEXT UNLOCK: ${next.name} · ⭐ ${stars} / ${next.at}`,22,'#77746d');
+      const barY=newly?976:936;const bar=this.add.graphics();bar.fillStyle(0xffffff,.9);bar.fillRoundedRect(210,barY-10,360,38,19);bar.lineStyle(3,0xf4e5d2,1);bar.strokeRoundedRect(210,barY-10,360,38,19);bar.fillStyle(0xa8d8ff,1);bar.fillRoundedRect(218,barY-2,344*Math.min(1,stars/next.at),22,11);
       const preview=this.add.graphics();ball(preview,'coral',610,barY+8,30,next.name,0);preview.setAlpha(.95);
     } else text(this,390,830,'ALL SKINS UNLOCKED',22,'#77746d');
     const play=this.add.graphics();play.fillStyle(0x855875,.12);play.fillRoundedRect(105,1028,570,132,36);play.fillStyle(0xe98980,1);play.fillRoundedRect(105,1020,570,132,36);play.fillStyle(0xffffff,.22);play.fillRoundedRect(120,1030,540,27,14);play.lineStyle(4,0xffffff,.85);play.strokeRoundedRect(105,1020,570,132,36);play.setInteractive(new Phaser.Geom.Rectangle(105,1020,570,132),Phaser.Geom.Rectangle.Contains).on('pointerdown',()=>this.scene.start('game'));text(this,390,1086,'PLAY AGAIN',34,'#ffffff');

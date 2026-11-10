@@ -22,7 +22,7 @@ catch {
 } }
 export function saveSound(enabled: boolean): void { writeValue(STORAGE_PREFIX + 'sound', enabled ? 'on' : 'off'); }
 export type Skin = 'Classic' | 'Strawberry' | 'Bunny' | 'Star' | 'Rainbow' | 'Sunny' | 'Galaxy';
-export const SKINS: { name: Skin; at: number }[] = [{name:'Classic',at:0},{name:'Strawberry',at:6},{name:'Bunny',at:18},{name:'Star',at:36},{name:'Rainbow',at:60}];
+export const SKINS: { name: Skin; at: number }[] = [{name:'Classic',at:0},{name:'Strawberry',at:6},{name:'Bunny',at:18},{name:'Star',at:36},{name:'Rainbow',at:60},{name:'Sunny',at:0},{name:'Galaxy',at:0}];
 export function getUnlockedSkins(): Skin[] {
   const stars = readNumber(STORAGE_PREFIX + 'totalStars');
   const maxStreak = readNumber(STORAGE_PREFIX + 'dailyMaxStreak');
